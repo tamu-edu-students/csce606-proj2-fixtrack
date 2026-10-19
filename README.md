@@ -48,6 +48,8 @@ Project documentation is maintained in [`docs/`](docs/):
 - [User guide](docs/user-guide.md)
 - [Architecture](docs/architecture.md)
 - [Testing strategy](docs/testing-strategy.md)
+- [Sprint timeline](docs/sprint-timeline.md)
+- [Scrum meeting log](docs/scrum-meeting-log.md)
 - [Architecture Decision Records](docs/adr)
 
 The live product backlog, sprint backlog, and burndown are maintained in
