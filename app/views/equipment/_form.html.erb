@@ -1,0 +1,28 @@
+<%= form_with model: equipment, url: equipment.persisted? ? equipment_path(equipment) : equipment_index_path, local: true, data: { turbo: false } do |form| %>
+  <% if equipment.errors.any? %>
+    <div role="alert">
+      <p>Please correct the following errors:</p>
+      <ul>
+        <% equipment.errors.full_messages.each do |message| %><li><%= message %></li><% end %>
+      </ul>
+    </div>
+  <% end %>
+  <% [ :name, :asset_identifier, :description, :location, :status ].each do |field| %>
+    <% invalid = equipment.errors[field].any? %>
+    <p>
+      <%= form.label field %>
+      <% options = { required: field != :description, aria: { invalid: invalid, describedby: invalid ? "#{field}_errors" : nil } } %>
+      <% if field == :description %>
+        <%= form.text_area field, **options %>
+      <% elsif field == :status %>
+        <%= form.select field, Equipment::STATUSES, { include_blank: "Select a status" }, options %>
+      <% else %>
+        <%= form.text_field field, **options %>
+      <% end %>
+      <% if invalid %>
+        <span id="<%= field %>_errors"><%= equipment.errors.full_messages_for(field).to_sentence %></span>
+      <% end %>
+    </p>
+  <% end %>
+  <%= form.submit equipment.persisted? ? "Save changes" : "Create equipment" %>
+<% end %>
