@@ -35,32 +35,59 @@ equipment, assign Technicians, or work on tickets assigned to others.
 
 ### Epic A — Authentication and authorization
 
-Provides login, logout, protected access, user roles, and role-based
-permissions.
+**Description:** Provides login, logout, protected access, user roles, role
+permissions, and user provisioning.
 
-### Epic B — Equipment management
+**Boundary:** Owns authentication, authorization rules, Admin bootstrap, and
+role-based user provisioning. It does not own the equipment, ticket,
+dispatch, repair, or verification behavior that those permissions protect.
 
-Provides manager equipment management and authenticated equipment discovery.
+### Epic B — Equipment management and discovery
 
-### Epic C — Reporter workflow
+**Description:** Provides equipment records, equipment search, open-ticket
+visibility for selected equipment, and equipment maintenance history.
 
-Provides the reporter journey from submitting a ticket through viewing,
-verifying, resolving, or reopening it.
+**Boundary:** Owns equipment-centered records and discovery. It does not own
+ticket creation, ticket assignment, technician repair work, or Reporter
+verification. Other epics may use the equipment selected here.
+
+### Epic C — Ticket intake and verification
+
+**Description:** Provides the Reporter-facing start and end of the ticket
+lifecycle: submitting a problem, viewing submitted tickets, and verifying,
+resolving, or reopening completed work.
+
+**Boundary:** Owns ticket intake validation and Reporter verification. It does
+not own the Manager queue or assignment decisions, Technician repair actions,
+or equipment record management.
 
 ### Epic D — Manager dispatch workflow
 
-Provides the manager queue, ticket prioritization, and technician assignment.
+**Description:** Provides the Manager queue, ticket prioritization, and
+Technician assignment.
 
-### Epic E — Technician repair workflow
+**Boundary:** Owns Manager review, coordination, prioritization, and routing
+of tickets. It does not own ticket submission, Technician repair execution,
+repair records, or Reporter verification.
 
-Provides assigned-ticket work, status updates, and repair records. The
-technician moves a ticket to `Ready for Verification`; the reporter decides
-whether it is resolved or reopened.
+### Epic E — Repair workflow
+
+**Description:** Provides Technician assigned-ticket work, status updates,
+and repair records. The Technician moves a ticket to `Ready for Verification`;
+the Reporter decides whether it is resolved or reopened.
+
+**Boundary:** Owns Technician work after assignment, including repair status
+and documentation. It does not own Manager assignment, Reporter ticket
+submission or verification, or equipment CRUD.
 
 ### Epic F — Stretch work
 
-Contains optional work that must not delay the MVP, presentation, deployment,
-documentation, or final demo.
+**Description:** Contains optional capabilities that may improve FixTrack
+beyond the MVP.
+
+**Boundary:** Includes only work that can be deferred without blocking the MVP,
+presentation, deployment, documentation, or final demo. Stretch work must not
+introduce dependencies that put committed stories at risk.
 
 ## Sprint 1 — Foundation
 
@@ -136,21 +163,21 @@ depend on Sprint 2 stories.
 ### C1 — Report an equipment problem
 
 - **GitHub issue:** [#6](https://github.com/tamu-edu-students/csce606-proj2-fixtrack/issues/6)
-- **Epic:** Reporter workflow
+- **Epic:** Ticket intake and verification
 - **Scope:** Allow a Reporter to create a ticket for selected equipment with its reporter, description, priority, and initial status.
 - **Depends on:** A1, A3, B1, B2
 
 ### C2 — Reject invalid ticket data
 
 - **GitHub issue:** [#8](https://github.com/tamu-edu-students/csce606-proj2-fixtrack/issues/8)
-- **Epic:** Reporter workflow
+- **Epic:** Ticket intake and verification
 - **Scope:** Reject incomplete or invalid ticket values, show understandable errors, and prevent invalid records from being persisted.
 - **Depends on:** C1
 
 ### C3 — View submitted tickets
 
 - **GitHub issue:** [#16](https://github.com/tamu-edu-students/csce606-proj2-fixtrack/issues/16)
-- **Epic:** Reporter workflow
+- **Epic:** Ticket intake and verification
 - **Scope:** Show a Reporter only the tickets they submitted, including equipment, priority, status, and assignment details.
 - **Depends on:** A1, A3, C1
 
@@ -186,35 +213,35 @@ preparation.
 ### E1 — View assigned tickets
 
 - **GitHub issue:** [#17](https://github.com/tamu-edu-students/csce606-proj2-fixtrack/issues/17)
-- **Epic:** Technician repair workflow
+- **Epic:** Repair workflow
 - **Scope:** Show a technician only the tickets assigned to them and provide access to their ticket details.
 - **Depends on:** D3
 
 ### E2 — Update ticket status
 
 - **GitHub issue:** [#10](https://github.com/tamu-edu-students/csce606-proj2-fixtrack/issues/10)
-- **Epic:** Technician repair workflow
+- **Epic:** Repair workflow
 - **Scope:** Allow assigned technicians to move tickets through `Open`, `Assigned`, `In Progress`, and `Ready for Verification`.
 - **Depends on:** E1
 
 ### E3 — Add a repair record
 
 - **GitHub issue:** [#11](https://github.com/tamu-edu-students/csce606-proj2-fixtrack/issues/11)
-- **Epic:** Technician repair workflow
+- **Epic:** Repair workflow
 - **Scope:** Allow assigned technicians to add one or more validated repair records without automatically resolving the ticket.
 - **Depends on:** E1, E2
 
 ### C4 — Verify or reopen a repaired ticket
 
 - **GitHub issue:** [#22](https://github.com/tamu-edu-students/csce606-proj2-fixtrack/issues/22)
-- **Epic:** Reporter workflow
+- **Epic:** Ticket intake and verification
 - **Scope:** Allow the Reporter to mark a `Ready for Verification` ticket `Resolved` or reopen it with a required reason. A manager may override with a reason.
 - **Depends on:** C3, E2, E3
 
 ### C5 — View equipment maintenance history
 
 - **GitHub issue:** [#12](https://github.com/tamu-edu-students/csce606-proj2-fixtrack/issues/12)
-- **Epic:** Reporter workflow
+- **Epic:** Equipment management and discovery
 - **Scope:** Display tickets and repair records for the selected equipment, including repair descriptions, technicians, and completion dates.
 - **Depends on:** B3, E3
 
