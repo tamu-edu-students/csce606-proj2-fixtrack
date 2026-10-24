@@ -49,6 +49,7 @@ Project documentation is maintained in [`docs/`](docs/):
 - [Architecture](docs/architecture.md)
 - [Testing strategy](docs/testing-strategy.md)
 - [Sprint timeline](docs/sprint-timeline.md)
+- [Sprint backlog planning](docs/sprint-backlog-planning.md)
 - [Scrum meeting log](docs/scrum-meeting-log.md)
 - [Architecture Decision Records](docs/adr)
 
