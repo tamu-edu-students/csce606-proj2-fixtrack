@@ -29,7 +29,7 @@ by:
 - Pelumi Olutimehin
 - Hashim Balawi
 - Jianqiu Wang
-
+- Jorge Santos
 ## Getting Started
 
 This is a Ruby on Rails application.
