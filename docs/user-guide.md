@@ -16,30 +16,47 @@ problem report through repair completion.
 
 ## Roles
 
+### Admin
+
+Your workflow is to provision the people who will use FixTrack:
+
+1. Sign in with the initial Admin account.
+2. Create users and assign each person the appropriate role.
+
+Admins can provision Admins, Managers, Technicians, and Reporters.
+
 ### Manager
 
-- Register and manage equipment
-- Review maintenance tickets
-- Assign tickets to technicians
-- Monitor equipment and ticket status
-- Review repair history
+Your workflow is to coordinate equipment maintenance:
+
+1. Manage the equipment records.
+2. Review newly reported tickets.
+3. Assign each ticket to a Technician.
+4. Monitor ticket progress and repair history.
 
 ### Technician
 
-- View assigned tickets
-- Update ticket status
-- Document repair work
-- Record resolution information
+Your workflow is to complete assigned repairs:
 
-## Example Workflow
+1. View the tickets assigned to you.
+2. Update the ticket while working.
+3. Record the repair work.
+4. Send the repaired ticket to the Reporter for verification.
 
-1. A user signs in.
-2. The user reports a problem against an equipment record.
-3. A manager reviews the ticket and assigns a technician.
-4. The technician moves the ticket through `Assigned`, `In Progress`, and
-   `Resolved`.
-5. The technician records the completed repair.
-6. The team reviews the equipment's maintenance history.
+### Reporter
+
+Your workflow is to report and verify equipment problems:
+
+1. Find the equipment and open a ticket describing the problem.
+2. View the progress of your submitted ticket.
+3. Review the repair after the Technician sends it back.
+4. Mark the ticket resolved if the problem is fixed, or reopen it with a
+   reason if more work is needed.
+
+## Overall Ticket Flow
+
+`Reporter opens ticket` → `Manager assigns Technician` →
+`Technician completes repair` → `Reporter verifies or reopens`
 
 ## Validation and Permissions
 
@@ -56,4 +73,3 @@ Unauthorized actions should be rejected and should not modify data.
 | Cannot sign in | Verify credentials and confirm the account exists. |
 | Cannot edit equipment | Confirm the account has the manager role. |
 | Ticket is missing | Check the equipment and ticket filters. |
-
