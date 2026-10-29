@@ -1,0 +1,28 @@
+<section class="ticket-details" aria-labelledby="ticket-details-title">
+  <h1 id="ticket-details-title"><%= ticket.title %></h1>
+
+  <dl>
+    <dt>Ticket ID</dt>
+    <dd><%= ticket.id %></dd>
+
+    <dt>Issue description</dt>
+    <dd><%= ticket.description %></dd>
+
+    <dt>Equipment identifier</dt>
+    <dd><%= ticket.equipment.asset_identifier %></dd>
+
+    <dt>Priority</dt>
+    <dd><%= ticket.priority.to_s.humanize %></dd>
+
+    <dt>Status</dt>
+    <dd><%= ticket.status.to_s.humanize %></dd>
+
+    <dt>Created</dt>
+    <dd><%= ticket.created_at&.to_fs(:long) %></dd>
+
+    <dt>Last updated</dt>
+    <dd><%= ticket.updated_at&.to_fs(:long) %></dd>
+  </dl>
+</section>
+
+<%= render "status_update", ticket: ticket %>
