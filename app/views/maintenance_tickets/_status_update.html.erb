@@ -1,0 +1,17 @@
+<% status_options = status_options_for(current_user) %>
+
+<section class="ticket-status-update" aria-labelledby="ticket-status-update-title">
+  <h2 id="ticket-status-update-title">Change status</h2>
+
+  <% if status_options.any? %>
+    <%= form_with url: update_maintenance_ticket_status_path(ticket), method: :patch do %>
+      <%= label_tag :status, "New status" %>
+      <%= select_tag :status,
+                     options_for_select(status_options.map { |status| [status.humanize, status] }),
+                     prompt: "Choose a status" %>
+      <%= submit_tag "Update status" %>
+    <% end %>
+  <% else %>
+    <p>Status changes aren't available for your account.</p>
+  <% end %>
+</section>
