@@ -60,7 +60,15 @@ class EquipmentController < ApplicationController
     head :forbidden unless current_user&.manager?
   end
 
-  def equipment_params
-    params.require(:equipment).permit(:name, :asset_identifier, :description, :location, :status)
+    def equipment_params
+    params.require(:equipment).permit(
+      :name,
+      :asset_identifier,
+      :description,
+      :location,
+      :status,
+      :manufacture_date,
+      :specifications
+    )
   end
 end

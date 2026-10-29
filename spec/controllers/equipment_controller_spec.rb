@@ -114,4 +114,76 @@ RSpec.describe EquipmentController, type: :controller do
     get :show, params: { id: item.id }
     expect(response).to have_http_status(:unauthorized)
   end
+
+    context "equipment record details" do
+    let(:record_details) do
+      {
+        manufacture_date: "2020-05-15",
+        specifications: "Supply voltage: 120 V"
+      }
+    end
+
+    it "saves record details when a manager creates equipment" do
+      post :create, params: {
+        equipment: attributes.merge(record_details)
+      }
+
+      expect(response).to have_http_status(:redirect)
+
+      saved = Equipment.find_by!(asset_identifier: "LAB-001")
+      expect(saved.manufacture_date).to eq(Date.new(2020, 5, 15))
+      expect(saved.specifications).to eq("Supply voltage: 120 V")
+    end
+
+    it "saves record details when a manager updates equipment" do
+      patch :update, params: {
+        id: item.id,
+        equipment: record_details
+      }
+
+      expect(response).to have_http_status(:redirect)
+      expect(item.reload.manufacture_date).to eq(Date.new(2020, 5, 15))
+      expect(item.specifications).to eq("Supply voltage: 120 V")
+    end
+
+    it "allows technicians to read record details without edit controls" do
+      item.update!(record_details)
+      allow(controller).to receive(:current_user)
+        .and_return(double(manager?: false))
+
+      get :show, params: { id: item.id }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("2020-05-15")
+      expect(response.body).to include("Supply voltage: 120 V")
+      expect(response.body).not_to include("Edit equipment")
+      expect(response.body).not_to include("Remove equipment")
+    end
+
+    it "prevents technicians from changing record details" do
+      item.update!(record_details)
+      allow(controller).to receive(:current_user)
+        .and_return(double(manager?: false))
+
+      patch :update, params: {
+        id: item.id,
+        equipment: {
+          manufacture_date: "2025-01-01",
+          specifications: "Unauthorized change"
+        }
+      }
+
+      expect(response).to have_http_status(:forbidden)
+      expect(item.reload.manufacture_date).to eq(Date.new(2020, 5, 15))
+      expect(item.specifications).to eq("Supply voltage: 120 V")
+    end
+
+    it "displays placeholders when optional record details are absent" do
+      get :show, params: { id: item.id }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Manufacture date", "Specifications")
+      expect(response.body.scan("Not provided.").length).to eq(2)
+    end
+  end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_20_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_29_013919) do
   create_table "equipment", force: :cascade do |t|
     t.string "name", null: false
     t.string "asset_identifier", null: false
@@ -19,6 +19,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_000000) do
     t.string "status", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.date "manufacture_date"
+    t.text "specifications"
     t.index ["asset_identifier"], name: "index_equipment_on_asset_identifier", unique: true
   end
 end

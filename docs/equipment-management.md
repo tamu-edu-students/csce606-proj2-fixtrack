@@ -68,3 +68,25 @@ Before merge: integrate real authentication, verify
 technician and anonymous requests using actual accounts, add ticket-history
 restrictions when that model is available, check coverage, peer review and
 production deployment.
+
+## Equipment record metadata
+
+Equipment records now support two optional fields:
+- Manufacture date
+- Specifications
+
+Managers can enter or update these fields using the equipment form.
+Authenticated technicians can view them but cannot modify equipment.
+Missing values display “Not provided.” on the equipment details page.
+
+The migration adds nullable columns, preserving existing records.
+PDF/manual attachments and ticket-view integration remain outstanding.
+
+Verification for this update:
+- 42 model/controller examples passed.
+- Full RuboCop check: 35 files inspected, no offenses.
+- Targeted model/controller line coverage: 91.83%.
+
+Authentication remains simulated in controller tests. Real-user
+acceptance testing still depends on #4. These results do not establish
+acceptance-test coverage or completion of the Definition of Done.
