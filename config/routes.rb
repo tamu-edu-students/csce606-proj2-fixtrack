@@ -11,4 +11,8 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
+
+  patch "maintenance_tickets/:id/status",
+        to: "maintenance_tickets#update_status",
+        as: :update_maintenance_ticket_status
 end
