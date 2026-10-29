@@ -1,5 +1,9 @@
 @equipment
 Feature: Equipment management
+  As a manager
+  I want to create, view, update, and remove equipment records
+  So that the organization's equipment information remains accurate
+
   Equipment records help the team locate assets and understand their current status.
   Authentication scenarios require the real login and User model from issue #4.
 
@@ -27,12 +31,16 @@ Feature: Equipment management
     And I press the equipment button "Save changes"
     Then the saved equipment should have location "Lab B"
 
-  Scenario: A manager cancels then confirms deletion
+  Scenario: A manager cancels equipment deletion
     Given I am authenticated for equipment management as a "manager"
     And an equipment record exists
     When I visit the equipment removal confirmation page
     And I follow the equipment link "Cancel"
     Then the equipment record should still exist
+
+  Scenario: A manager confirms equipment deletion
+    Given I am authenticated for equipment management as a "manager"
+    And an equipment record exists
     When I visit the equipment removal confirmation page
     And I press the equipment button "Confirm removal"
     Then I should see the equipment text "Equipment removed successfully."
