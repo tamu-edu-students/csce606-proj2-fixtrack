@@ -1,6 +1,6 @@
 <h1>Equipment</h1>
 <%= render "messages" %>
-<% if current_user.manager? %>
+<% if EquipmentPolicy.new(current_user, Equipment).create? %>
   <p><%= link_to "Add equipment", new_equipment_path %></p>
 <% end %>
 <% if @equipment.empty? %>
