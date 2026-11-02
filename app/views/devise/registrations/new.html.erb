@@ -7,6 +7,14 @@
     <p><%= f.label :email %></p>
     <p><%= f.email_field :email, autofocus: true, autocomplete: "email" %></p>
   </div>
+  <div class="name">
+    <p><%= f.label :name %></p>
+    <p><%= f.text_field :name, autofocus: true, autocomplete: "name" %></p>
+  </div>
+    <div class="field">
+    <p><%= f.label :company_name %></p>
+    <p><%= f.text_field :company_name, autofocus: true, autocomplete: "company_name" %></p>
+  </div>
 
   <div class="field">
     <p><%= f.label :password %></p>
@@ -14,7 +22,7 @@
       <p><em>(<%= @minimum_password_length %> characters minimum)</em></p>
     <% end %>
     <p><%= f.password_field :password, autocomplete: "new-password" %></p>
-  </div>
+  </div>          
 
   <div class="field">
     <p><%= f.label :password_confirmation %></p>
