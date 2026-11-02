@@ -5,11 +5,14 @@
     <dt>Ticket ID</dt>
     <dd><%= ticket.id %></dd>
 
-    <dt>Issue description</dt>
-    <dd><%= ticket.description %></dd>
+    <dt>Equipment</dt>
+    <dd><%= ticket.equipment.name %></dd>
 
-    <dt>Equipment identifier</dt>
+    <dt>Equipment Identifier</dt>
     <dd><%= ticket.equipment.asset_identifier %></dd>
+
+    <dt>Issue Description</dt>
+    <dd><%= ticket.description %></dd>
 
     <dt>Priority</dt>
     <dd><%= ticket.priority.to_s.humanize %></dd>
@@ -17,12 +20,13 @@
     <dt>Status</dt>
     <dd><%= ticket.status.to_s.humanize %></dd>
 
+    <dt>Reported By</dt>
+    <dd><%= ticket.reporter.name %></dd>
+
     <dt>Created</dt>
     <dd><%= ticket.created_at&.to_fs(:long) %></dd>
 
-    <dt>Last updated</dt>
+    <dt>Last Updated</dt>
     <dd><%= ticket.updated_at&.to_fs(:long) %></dd>
   </dl>
 </section>
-
-<%= render "status_update", ticket: ticket %>
