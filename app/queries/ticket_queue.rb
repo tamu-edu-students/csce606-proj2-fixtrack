@@ -1,4 +1,8 @@
-class ManagerTicketQueue
+# Filters, orders, and paginates an already-authorized ticket scope.
+# The caller must restrict visibility before passing the scope, such as
+# limiting a technician's queue to tickets assigned to them.
+# This class does not perform authentication or authorization.
+class TicketQueue
   PAGE_SIZE = 25
   STATUS_OPTIONS = %w[open resolved all].freeze
   SORT_OPTIONS = %w[priority newest oldest].freeze

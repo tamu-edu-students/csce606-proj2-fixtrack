@@ -1,7 +1,7 @@
 require "spec_helper"
 require "active_record"
 require "sqlite3"
-require_relative "../../app/queries/manager_ticket_queue"
+require_relative "../../app/queries/ticket_queue"
 
 # A separate connection exercises real SQL without booting the incomplete Rails
 # model foundation or touching the application's development/test databases.
@@ -28,7 +28,7 @@ module ManagerTicketQueueSpec
   end
 end
 
-RSpec.describe ManagerTicketQueue do
+RSpec.describe TicketQueue do
   let(:model) { ManagerTicketQueueSpec::Ticket }
   let(:now) { Time.utc(2026, 10, 30, 12) }
 
@@ -187,7 +187,7 @@ RSpec.describe ManagerTicketQueue do
   end
 
   it "does not offer a next page beyond the practical page cap" do
-    stub_const("ManagerTicketQueue::MAX_PAGE", 1)
+    stub_const("TicketQueue::MAX_PAGE", 1)
     26.times { create_ticket }
 
     expect(queue.next_page?).to be false

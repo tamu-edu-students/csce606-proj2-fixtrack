@@ -6,7 +6,7 @@ require "pundit"
 require "nokogiri"
 require_relative "../../../app/helpers/application_helper"
 require_relative "../../../app/policies/manager_ticket_queue_policy"
-require_relative "../../../app/queries/manager_ticket_queue"
+require_relative "../../../app/queries/ticket_queue"
 
 # Exercise the production controller with real HTTP requests and Pundit, while
 # simulating the Devise boundary that is not yet integrated into main. Full
@@ -15,7 +15,7 @@ RSpec.describe "Manager ticket queue controller" do
   let(:user) { Struct.new(:role).new("manager") }
   let(:scope) { instance_double(ActiveRecord::Relation) }
   let(:query) do
-    instance_double(ManagerTicketQueue, tickets: [], status: "open", sort: "priority",
+    instance_double(TicketQueue, tickets: [], status: "open", sort: "priority",
       page: 1, previous_page?: false, next_page?: false)
   end
 
@@ -46,7 +46,7 @@ RSpec.describe "Manager ticket queue controller" do
 
     allow(MaintenanceTicket).to receive(:all).and_return(scope)
     allow(scope).to receive(:preload).with(:equipment, :reporter, :assigned_technician).and_return(scope)
-    allow(ManagerTicketQueue).to receive(:new).and_return(query)
+    allow(TicketQueue).to receive(:new).and_return(query)
   end
 
   def get_queue(query_string = "")
@@ -77,7 +77,7 @@ RSpec.describe "Manager ticket queue controller" do
 
       it "denies access before loading any tickets" do
         expect(MaintenanceTicket).not_to receive(:all)
-        expect(ManagerTicketQueue).not_to receive(:new)
+        expect(TicketQueue).not_to receive(:new)
 
         status, _headers, body = get_queue
 
@@ -92,7 +92,7 @@ RSpec.describe "Manager ticket queue controller" do
 
     it "authenticates before loading the queue" do
       expect(MaintenanceTicket).not_to receive(:all)
-      expect(ManagerTicketQueue).not_to receive(:new)
+      expect(TicketQueue).not_to receive(:new)
 
       status, headers, _body = get_queue
 
@@ -103,7 +103,7 @@ RSpec.describe "Manager ticket queue controller" do
 
   it "passes supported request parameters into the queue with preloaded associations" do
     expect(scope).to receive(:preload).with(:equipment, :reporter, :assigned_technician).and_return(scope)
-    expect(ManagerTicketQueue).to receive(:new).with(
+    expect(TicketQueue).to receive(:new).with(
       scope: scope, status: "resolved", sort: "newest", page: "2"
     ).and_return(query)
 
@@ -111,7 +111,7 @@ RSpec.describe "Manager ticket queue controller" do
   end
 
   it "does not pass arbitrary request parameters into the query" do
-    expect(ManagerTicketQueue).to receive(:new).with(
+    expect(TicketQueue).to receive(:new).with(
       scope: scope, status: nil, sort: nil, page: nil
     ).and_return(query)
 

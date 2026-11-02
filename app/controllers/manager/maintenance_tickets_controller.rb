@@ -12,7 +12,7 @@ module Manager
     def index
       authorize :manager_ticket_queue
 
-      @queue = ManagerTicketQueue.new(
+      @queue = TicketQueue.new(
         scope: queue_scope.preload(:equipment, :reporter, :assigned_technician),
         status: params[:status],
         sort: params[:sort],
