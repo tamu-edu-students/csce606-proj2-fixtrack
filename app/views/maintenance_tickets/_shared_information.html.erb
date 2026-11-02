@@ -9,7 +9,7 @@
     <dd><%= ticket.equipment.name %></dd>
 
     <dt>Equipment Identifier</dt>
-    <dd><%= ticket.equipment.asset_identifier %></dd>
+    <dd><%= link_to ticket.equipment.asset_identifier, equipment_path(ticket.equipment) %></dd>
 
     <dt>Issue Description</dt>
     <dd><%= ticket.description %></dd>
