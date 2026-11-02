@@ -43,6 +43,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_190000) do
     t.index ["assigned_technician_id"], name: "index_maintenance_tickets_on_assigned_technician_id"
     t.index ["equipment_id"], name: "index_maintenance_tickets_on_equipment_id"
     t.index ["reporter_id"], name: "index_maintenance_tickets_on_reporter_id"
+    t.index ["status"], name: "index_maintenance_tickets_on_status"
   end
 
   create_table "users", force: :cascade do |t|
