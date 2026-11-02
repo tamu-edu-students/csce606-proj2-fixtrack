@@ -7,7 +7,8 @@
     <%= form_with url: update_maintenance_ticket_status_path(ticket), method: :patch do %>
       <%= label_tag :status, "New status" %>
       <%= select_tag :status,
-                     options_for_select(status_options.map { |status| [status.humanize, status] }),
+                     options_for_select(status_options.map { |status| [status.humanize, status] },
+                                        ticket.status),
                      prompt: "Choose a status" %>
       <%= submit_tag "Update status" %>
     <% end %>

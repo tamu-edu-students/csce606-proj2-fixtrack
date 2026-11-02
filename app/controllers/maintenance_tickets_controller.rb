@@ -32,14 +32,17 @@ class MaintenanceTicketsController < ApplicationController
     requested_status = params[:status]
 
     unless status_options_for(current_user).include?(requested_status)
-      redirect_back_or_to("/", alert: "You are not allowed to set that status.")
+      redirect_to maintenance_ticket_path(ticket),
+                  alert: "You are not allowed to set this status."
       return
     end
 
     if ticket.update(status: requested_status)
-      redirect_back_or_to("/", notice: "Ticket status updated.")
+      redirect_to maintenance_ticket_path(ticket),
+                  notice: "Ticket status updated."
     else
-      redirect_back_or_to("/", alert: ticket.errors.full_messages.to_sentence)
+      redirect_to maintenance_ticket_path(ticket),
+                  alert: ticket.errors.full_messages.to_sentence
     end
   end
 
@@ -57,10 +60,4 @@ class MaintenanceTicketsController < ApplicationController
       :equipment_id
     )
   end
-end
- 
-
-  
-
-  
 end

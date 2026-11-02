@@ -10,7 +10,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_29_040923) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_02_161100) do
+  create_table "companies", force: :cascade do |t|
+    t.string "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "equipment", force: :cascade do |t|
     t.string "name", null: false
     t.string "asset_identifier", null: false
@@ -19,8 +25,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_29_040923) do
     t.string "status", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.date "manufacture_date"
-    t.text "specifications"
     t.index ["asset_identifier"], name: "index_equipment_on_asset_identifier", unique: true
   end
 
@@ -28,7 +32,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_29_040923) do
     t.string "title", null: false
     t.text "description", null: false
     t.string "priority", null: false
-    t.string "status", default: "open", null: false
+    t.string "status", default: "submitted", null: false
     t.integer "equipment_id", null: false
     t.integer "reporter_id", null: false
     t.integer "assigned_technician_id"
@@ -39,30 +43,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_29_040923) do
     t.index ["reporter_id"], name: "index_maintenance_tickets_on_reporter_id"
   end
 
-  create_table "companies", force: :cascade do |t|
-    t.string "name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
     t.string "reset_password_token"
     t.datetime "reset_password_sent_at"
     t.datetime "remember_created_at"
+    t.string "role", default: "technician", null: false
+    t.integer "company_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "company_id", null: false
-    t.string "name"
-    t.string "role"
     t.index ["company_id"], name: "index_users_on_company_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
-  add_foreign_key "users", "companies"
   add_foreign_key "maintenance_tickets", "equipment"
   add_foreign_key "maintenance_tickets", "users", column: "assigned_technician_id"
   add_foreign_key "maintenance_tickets", "users", column: "reporter_id"
+  add_foreign_key "users", "companies"
 end
