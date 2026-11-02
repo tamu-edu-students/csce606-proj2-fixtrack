@@ -3,7 +3,7 @@
 <section class="ticket-status-update" aria-labelledby="ticket-status-update-title">
   <h2 id="ticket-status-update-title">Change status</h2>
 
-  <% if status_options.any? %>
+  <% if status_options.any? && can_update_status?(ticket) %>
     <%= form_with url: update_maintenance_ticket_status_path(ticket), method: :patch do %>
       <%= label_tag :status, "New status" %>
       <%= select_tag :status,
