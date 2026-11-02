@@ -1,25 +1,34 @@
 class EquipmentController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_manager!, except: [ :index, :show ]
   before_action :set_equipment, only: [ :show, :edit, :update, :confirm_destroy, :destroy ]
+
+  after_action :verify_authorized
+
+  rescue_from Pundit::NotAuthorizedError do
+    head :forbidden
+  end
 
   rescue_from ActiveRecord::RecordNotFound do
     render plain: "Equipment not found.", status: :not_found
   end
 
   def index
+    authorize Equipment
     @equipment = Equipment.order(:name, :id)
   end
 
   def show
+    authorize @equipment
   end
 
   def new
     @equipment = Equipment.new
+    authorize @equipment
   end
 
   def create
     @equipment = Equipment.new(equipment_params)
+    authorize @equipment
     if @equipment.save
       redirect_to equipment_path(@equipment), notice: "Equipment created successfully."
     else
@@ -28,9 +37,11 @@ class EquipmentController < ApplicationController
   end
 
   def edit
+    authorize @equipment
   end
 
   def update
+    authorize @equipment
     if @equipment.update(equipment_params)
       redirect_to equipment_path(@equipment), notice: "Equipment updated successfully."
     else
@@ -39,9 +50,11 @@ class EquipmentController < ApplicationController
   end
 
   def confirm_destroy
+    authorize @equipment
   end
 
   def destroy
+    authorize @equipment
     if @equipment.destroy
       redirect_to equipment_index_path, notice: "Equipment removed successfully.", status: :see_other
     else
