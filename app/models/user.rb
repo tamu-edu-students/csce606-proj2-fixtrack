@@ -3,7 +3,7 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable
 
   validates :name, presence: true
-  validates :role, inclusion: { in: %w[manager technician] }
+  validates :role, inclusion: { in: %w[manager technician reporter] }
 
   belongs_to :company, optional: true
 
