@@ -1,5 +1,16 @@
 Rails.application.routes.draw do
-  resources :maintenance_tickets, only: %i[new create show]
+  root "maintenance_tickets#index"
+
+  resources :equipment do
+    get :confirm_destroy, on: :member
+  end
+
+  devise_for :users
+  resources :maintenance_tickets, path: "issues", only: %i[index new create show]
+
+  namespace :manager do
+    resources :maintenance_tickets, only: :index
+  end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
