@@ -8,6 +8,7 @@ Add one row after each meeting.
 | 20260-10-19 | Planning | James, Hashim, Jorge, Pelumi, Gildas, Jianqiu | None | Team and project introductions | Story breakup and assignment - James |
 | 20260-10-26 | Planning | James, Hashim, Jorge, Pelumi, Jianqiu | Gildas | Sprint 1 assignment finalization and began identifying UX for stories | View story breakdown and identify UX pages for meeting - Everyone - 10/28/2026 |
 | 20260-10-28 | Check-in | James, Hashim, Jorge, Pelumi, Jianqiu, Gildas | None | Aligning on screen updates and discuss open PRs and model design | Review open PRs |
+| 20260-11-02 | Check-in | James, Hashim, Jorge, Pelumi, Jianqiu, Gildas | None | Discuss mid-project deliverables, plan for next UX meeting | Review open PRs |
 
 
 ## Meeting types
