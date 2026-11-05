@@ -12,13 +12,16 @@ class User < ApplicationRecord
   before_validation :build_company, on: :create
   before_validation :set_manager_role, on: :create
 
-  validates :company_name, presence: true, on: :create
+  validates :company_name, presence: true, 
+            on: :create,
+            if: -> { company.nil? }
 
   private
 
   def build_company
     if company_name.present? && company.nil?
-      self.company = Company.new(name: company_name)
+      self.company = Company.new(name: company_name) if
+      company_name.present? && company.nil?
     end
   end
 
