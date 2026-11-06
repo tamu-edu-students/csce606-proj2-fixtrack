@@ -5,10 +5,11 @@ Add one row after each meeting.
 | Date | Meeting | Attendees | Absent | Notes / Decisions | Action Items |
 |---|---|---|---|---|---|
 | YYYY-MM-DD | Planning / Check-in / Review / Retro | Name, Name | Name or None | Short summary | Action - Owner - Due date |
-| 20260-10-19 | Planning | James, Hashim, Jorge, Pelumi, Gildas, Jianqiu | None | Team and project introductions | Story breakup and assignment - James |
-| 20260-10-26 | Planning | James, Hashim, Jorge, Pelumi, Jianqiu | Gildas | Sprint 1 assignment finalization and began identifying UX for stories | View story breakdown and identify UX pages for meeting - Everyone - 10/28/2026 |
-| 20260-10-28 | Check-in | James, Hashim, Jorge, Pelumi, Jianqiu, Gildas | None | Aligning on screen updates and discuss open PRs and model design | Review open PRs |
-| 20260-11-02 | Check-in | James, Hashim, Jorge, Pelumi, Jianqiu, Gildas | None | Discuss mid-project deliverables, plan for next UX meeting | Review open PRs |
+| 2026-10-19 | Planning | James, Hashim, Jorge, Pelumi, Gildas, Jianqiu | None | Team and project introductions | Story breakup and assignment - James |
+| 2026-10-26 | Planning | James, Hashim, Jorge, Pelumi, Jianqiu | Gildas | Sprint 1 assignment finalization and began identifying UX for stories | View story breakdown and identify UX pages for meeting - Everyone - 10/28/2026 |
+| 2026-10-28 | Check-in | James, Hashim, Jorge, Pelumi, Jianqiu, Gildas | None | Aligning on screen updates and discuss open PRs and model design | Review open PRs |
+| 2026-11-02 | Check-in | James, Hashim, Jorge, Pelumi, Jianqiu, Gildas | None | Discuss mid-project deliverables, plan for next UX meeting | Review open PRs |
+| 2026-11-05 | Check-in | James, Hashim, Jorge, Pelumi, Jianqiu | Gildas | Discuss open tickets, plan for everyone to have their specific pages completed in Figma by 2026-11-09 |
 
 
 ## Meeting types
