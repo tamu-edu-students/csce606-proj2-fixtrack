@@ -23,9 +23,8 @@ Then("a company named {string} should exist") do |company_name|
   expect(Company.find_by(name: company_name)).to be_present
 end
 
-Then("the user should belong to the company {string}") do |company_name|
-  user = User.find_by(email: "john@example.com")
-  company = Company.find_by(name: company_name)
+Then("the user {string} should belong to the company {string}") do |email, company_name|
+  user = User.find_by!(email: email)
 
-  expect(user.company).to eq(company)
+  expect(user.company.name).to eq(company_name)
 end

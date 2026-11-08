@@ -8,15 +8,17 @@ def new
     @user = User.new
 end
 
-#handles managers creation of new users, and addigns managers
-#company aytomatically
 def create
-    @user = current_user.company.users.build(user_params)
-    if @user.save
-        redirect_to root_path, notice: "#{@user.role.capitalize} created successfully."
-    else
-        render :new, status: :unprocessable_entity
-    end
+  @user = current_user.company.users.build(user_params)
+
+  if @user.save
+    @success_message = "#{@user.role.capitalize} created successfully."
+    @user = User.new
+  else
+    @success_message = nil
+  end
+
+  render :new
 end
 
 def require_manager!
