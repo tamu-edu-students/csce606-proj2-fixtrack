@@ -7,7 +7,12 @@ RSpec.describe MaintenanceTicketsController do
   let(:technician) { Struct.new(:id, :role).new(2, "technician") }
   let(:reporter) { Struct.new(:id, :role).new(3, "reporter") }
   let(:ticket) do
-    Struct.new(:assigned_technician_id, :reporter_id).new(technician.id, reporter.id)
+    ticket_class = Struct.new(:id, :assigned_technician_id, :reporter_id) do
+      def update(**_attributes)
+        true
+      end
+    end
+    ticket_class.new(12, technician.id, reporter.id)
   end
 
   it "allows managers to submit, reject, or assign tickets" do
@@ -42,7 +47,7 @@ RSpec.describe MaintenanceTicketsController do
     ticket.assigned_technician_id = nil
     ticket.reporter_id = technician.id
 
-    expect(controller.status_options_for(technician, ticket)).to eq(["closed"])
+    expect(controller.status_options_for(technician, ticket)).to eq([ "closed" ])
   end
 
   it "does not allow a technician who did not create the ticket to update it when unassigned" do
@@ -52,12 +57,115 @@ RSpec.describe MaintenanceTicketsController do
   end
 
   it "allows the reporter who created the ticket to close it" do
-    expect(controller.status_options_for(reporter, ticket)).to eq(["closed"])
+    expect(controller.status_options_for(reporter, ticket)).to eq([ "closed" ])
   end
 
   it "does not allow a reporter who did not create the ticket to change its status" do
     ticket.reporter_id = 4
 
     expect(controller.status_options_for(reporter, ticket)).to be_empty
+  end
+
+  describe "#update_status" do
+    before do
+      controller.define_singleton_method(:current_user) { current_user_for_update }
+      controller.define_singleton_method(:params) do
+        ActionController::Parameters.new(id: "12", status: requested_status_for_update)
+      end
+      controller.define_singleton_method(:maintenance_ticket_path) { |record| "/issues/#{record.id}" }
+      allow(MaintenanceTicket).to receive(:find).with("12").and_return(ticket)
+      allow(controller).to receive(:redirect_to)
+    end
+
+    def update_status_as(user, status)
+      controller.define_singleton_method(:current_user_for_update) { user }
+      controller.define_singleton_method(:requested_status_for_update) { status }
+      controller.update_status
+    end
+
+    it "updates a ticket to an allowed manager status" do
+      expect(ticket).to receive(:update).with(status: "assigned").and_return(true)
+      expect(controller).to receive(:redirect_to).with(
+        "/issues/12",
+        notice: "Ticket status updated."
+      )
+
+      update_status_as(manager, "assigned")
+    end
+
+    it "rejects a manager closing a ticket they did not create" do
+      expect(ticket).not_to receive(:update)
+      expect(controller).to receive(:redirect_to).with(
+        "/issues/12",
+        alert: "You are not allowed to set this status."
+      )
+
+      update_status_as(manager, "closed")
+    end
+
+    it "allows a manager to close a ticket they created" do
+      ticket.reporter_id = manager.id
+      expect(ticket).to receive(:update).with(status: "closed").and_return(true)
+      expect(controller).to receive(:redirect_to).with(
+        "/issues/12",
+        notice: "Ticket status updated."
+      )
+
+      update_status_as(manager, "closed")
+    end
+
+    it "updates a ticket to an allowed status for its assigned technician" do
+      expect(ticket).to receive(:update).with(status: "in_progress").and_return(true)
+      expect(controller).to receive(:redirect_to).with(
+        "/issues/12",
+        notice: "Ticket status updated."
+      )
+
+      update_status_as(technician, "in_progress")
+    end
+
+    it "rejects a technician setting work status when the ticket is assigned elsewhere" do
+      ticket.assigned_technician_id = 4
+      expect(ticket).not_to receive(:update)
+      expect(controller).to receive(:redirect_to).with(
+        "/issues/12",
+        alert: "You are not allowed to set this status."
+      )
+
+      update_status_as(technician, "in_progress")
+    end
+
+    it "allows a technician creator to close their own ticket even when unassigned" do
+      ticket.assigned_technician_id = nil
+      ticket.reporter_id = technician.id
+      expect(ticket).to receive(:update).with(status: "closed").and_return(true)
+      expect(controller).to receive(:redirect_to).with(
+        "/issues/12",
+        notice: "Ticket status updated."
+      )
+
+      update_status_as(technician, "closed")
+    end
+
+    it "allows a reporter to close a ticket they created" do
+      expect(ticket).to receive(:update).with(status: "closed").and_return(true)
+      expect(controller).to receive(:redirect_to).with(
+        "/issues/12",
+        notice: "Ticket status updated."
+      )
+
+      update_status_as(reporter, "closed")
+    end
+
+    it "rejects a reporter closing a ticket they did not create" do
+      ticket.reporter_id = 4
+      expect(ticket).not_to receive(:update)
+      expect(controller).to receive(:redirect_to).with(
+        "/issues/12",
+        alert: "You are not allowed to set this status."
+      )
+
+      update_status_as(reporter, "closed")
+    end
   end
 end
