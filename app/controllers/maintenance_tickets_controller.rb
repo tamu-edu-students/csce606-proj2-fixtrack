@@ -7,6 +7,10 @@ class MaintenanceTicketsController < ApplicationController
   before_action :authenticate_user!
   helper_method :status_options_for, :can_update_status?
 
+  def index
+    @maintenance_tickets = MaintenanceTicket.order(created_at: :desc)
+  end
+
   def new
     @maintenance_ticket = MaintenanceTicket.new
   end
