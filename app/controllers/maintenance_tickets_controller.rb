@@ -1,4 +1,6 @@
 class MaintenanceTicketsController < ApplicationController
+  TECHNICIAN_VISIBLE_STATUSES = %w[assigned in_progress].freeze
+
   before_action :authenticate_user!
 
   def index
@@ -30,7 +32,10 @@ class MaintenanceTicketsController < ApplicationController
   def ticket_scope
     return MaintenanceTicket.all unless current_user&.technician?
 
-    MaintenanceTicket.where(assigned_technician: current_user)
+    MaintenanceTicket.where(
+      assigned_technician: current_user,
+      status: TECHNICIAN_VISIBLE_STATUSES
+    )
   end
 
   def ticket_params
