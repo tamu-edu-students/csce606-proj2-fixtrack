@@ -30,7 +30,7 @@
 
 <p><%= link_to "All equipment", equipment_index_path %></p>
 
-<% if current_user.manager? %>
+<% if EquipmentPolicy.new(current_user, @equipment).update? %>
   <p><%= link_to "Edit equipment", edit_equipment_path(@equipment) %></p>
   <p><%= link_to "Remove equipment", confirm_destroy_equipment_path(@equipment) %></p>
 <% end %>

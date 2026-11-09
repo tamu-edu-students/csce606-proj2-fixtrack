@@ -17,4 +17,17 @@ class MaintenanceTicket < ApplicationRecord
             inclusion: {
               in: %w[open assigned in_progress resolved]
             }
+
+
+  validate :equipment_id_must_reference_existing_equipment
+
+  private
+
+  def equipment_id_must_reference_existing_equipment
+    return if equipment_id.blank?
+
+    unless Equipment.exists?(id: equipment_id)
+      errors.add(:equipment_id, "must reference existing equipment")
+    end
+  end
 end
