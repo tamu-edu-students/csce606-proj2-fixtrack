@@ -16,8 +16,13 @@ class MaintenanceTicketsController < ApplicationController
     @maintenance_ticket.reporter = current_user
 
     if @maintenance_ticket.save
-      redirect_to @maintenance_ticket,
-                  notice: "Maintenance ticket created successfully."
+      if current_user.technician?
+        redirect_to maintenance_tickets_path,
+                    notice: "Maintenance ticket created successfully."
+      else
+        redirect_to @maintenance_ticket,
+                    notice: "Maintenance ticket created successfully."
+      end
     else
       render :new, status: :unprocessable_entity
     end
