@@ -14,7 +14,7 @@
     </div>
     <%= submit_tag "Apply", name: nil %>
   <% end %>
-  <p>The Submitted filter includes Submitted, Assigned, and In progress tickets.</p>
+  <p>The Open filter includes Submitted, Assigned, and In progress tickets.</p>
 
   <% if @tickets.empty? %>
     <% if @queue.page > 1 %>
