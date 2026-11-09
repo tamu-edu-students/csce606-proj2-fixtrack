@@ -1,7 +1,7 @@
 <h1>Issues</h1>
 
 <% if @maintenance_tickets.empty? %>
-  <p>No issues have been reported.</p>
+  <p><%= current_user&.technician? ? "No tickets are assigned to you." : "No issues have been reported." %></p>
 <% else %>
   <table>
     <caption>Reported equipment issues</caption>

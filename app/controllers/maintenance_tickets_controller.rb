@@ -2,7 +2,7 @@ class MaintenanceTicketsController < ApplicationController
   before_action :authenticate_user!
 
   def index
-    @maintenance_tickets = MaintenanceTicket.order(created_at: :desc)
+    @maintenance_tickets = ticket_scope.order(created_at: :desc)
   end
 
   def new
@@ -22,10 +22,16 @@ class MaintenanceTicketsController < ApplicationController
   end
 
   def show
-    @maintenance_ticket = MaintenanceTicket.find(params[:id])
+    @maintenance_ticket = ticket_scope.find(params[:id])
   end
 
   private
+
+  def ticket_scope
+    return MaintenanceTicket.all unless current_user&.technician?
+
+    MaintenanceTicket.where(assigned_technician: current_user)
+  end
 
   def ticket_params
     params.require(:maintenance_ticket).permit(
