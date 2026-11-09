@@ -15,7 +15,7 @@ RSpec.describe "Manager ticket queue controller" do
   let(:user) { Struct.new(:role).new("manager") }
   let(:scope) { instance_double(ActiveRecord::Relation) }
   let(:query) do
-    instance_double(TicketQueue, tickets: [], status: "open", sort: "priority",
+    instance_double(TicketQueue, tickets: [], status: "submitted", sort: "priority",
       page: 1, previous_page?: false, next_page?: false)
   end
 
@@ -66,7 +66,7 @@ RSpec.describe "Manager ticket queue controller" do
         status, _headers, body = get_queue
 
         expect(status).to eq(200)
-        expect(body).to include("Manager ticket queue", "No unresolved tickets.")
+        expect(body).to include("Manager ticket queue", "No submitted tickets.")
       end
     end
   end
@@ -181,7 +181,7 @@ RSpec.describe "Manager ticket queue controller" do
     expect(document.css('nav[aria-label="Ticket queue pages"]')).to be_empty
   end
 
-  { "open" => "No unresolved tickets.", "resolved" => "No resolved tickets.", "all" => "No tickets yet." }.each do |filter, message|
+  { "submitted" => "No submitted tickets.", "closed" => "No closed tickets.", "all" => "No tickets yet." }.each do |filter, message|
     it "explains empty results for the #{filter} filter" do
       allow(query).to receive(:status).and_return(filter)
       html = document
@@ -198,11 +198,11 @@ RSpec.describe "Manager ticket queue controller" do
   end
 
   it "offers a return to page one for an empty out-of-range page" do
-    allow(query).to receive_messages(status: "resolved", sort: "oldest", page: 100, previous_page?: true)
+    allow(query).to receive_messages(status: "closed", sort: "oldest", page: 100, previous_page?: true)
     html = document
     link = html.css('a').find { |element| element.text == "Back to first page" }
 
     expect(html.text).to include("No tickets on this page.")
-    expect(Rack::Utils.parse_query(URI(link["href"]).query)).to eq("status" => "resolved", "sort" => "oldest")
+    expect(Rack::Utils.parse_query(URI(link["href"]).query)).to eq("status" => "closed", "sort" => "oldest")
   end
 end

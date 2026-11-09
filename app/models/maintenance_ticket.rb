@@ -18,13 +18,7 @@ class MaintenanceTicket < ApplicationRecord
 
   validates :status,
             presence: true,
-<<<<<<< HEAD
             inclusion: { in: STATUSES }
-=======
-            inclusion: {
-              in: %w[open assigned in_progress resolved]
-            }
-
 
   validate :equipment_id_must_reference_existing_equipment
 
@@ -37,5 +31,4 @@ class MaintenanceTicket < ApplicationRecord
       errors.add(:equipment_id, "must reference existing equipment")
     end
   end
->>>>>>> origin/main
 end

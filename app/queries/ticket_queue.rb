@@ -4,9 +4,9 @@
 # This class does not perform authentication or authorization.
 class TicketQueue
   PAGE_SIZE = 25
-  STATUS_OPTIONS = %w[open resolved all].freeze
+  STATUS_OPTIONS = %w[submitted resolved closed all].freeze
   SORT_OPTIONS = %w[priority newest oldest].freeze
-  OPEN_STATUSES = %w[open assigned in_progress].freeze
+  SUBMITTED_STATUSES = %w[submitted assigned in_progress].freeze
   # Bound pagination to a practical number of pages.
   MAX_PAGE = 10_000
 
@@ -14,7 +14,7 @@ class TicketQueue
 
   def initialize(scope:, status: nil, sort: nil, page: nil)
     @scope = scope
-    @status = STATUS_OPTIONS.include?(status) ? status : "open"
+    @status = STATUS_OPTIONS.include?(status) ? status : "submitted"
     @sort = SORT_OPTIONS.include?(sort) ? sort : "priority"
     @page = normalize_page(page)
   end
@@ -43,8 +43,8 @@ class TicketQueue
 
   def filtered_scope
     case status
-    when "open" then @scope.where(status: OPEN_STATUSES)
-    when "resolved" then @scope.where(status: "resolved")
+    when "submitted" then @scope.where(status: SUBMITTED_STATUSES)
+    when "closed" then @scope.where(status: "closed")
     else @scope
     end
   end

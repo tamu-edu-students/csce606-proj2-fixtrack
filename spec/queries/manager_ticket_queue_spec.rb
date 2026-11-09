@@ -54,7 +54,7 @@ RSpec.describe TicketQueue do
     ManagerTicketQueueSpec::Equipment.delete_all
   end
 
-  def create_ticket(status: "open", priority: "medium", created_at: now, reporter_id: 1)
+  def create_ticket(status: "submitted", priority: "medium", created_at: now, reporter_id: 1)
     model.create!(status: status, priority: priority, created_at: created_at, reporter_id: reporter_id)
   end
 
@@ -62,14 +62,14 @@ RSpec.describe TicketQueue do
     described_class.new(scope: model.all, **options)
   end
 
-  it "defaults to unresolved work across reporters" do
-    active = %w[open assigned in_progress].each_with_index.map do |status, index|
+  it "defaults to submitted work across reporters" do
+    active = %w[submitted assigned in_progress].each_with_index.map do |status, index|
       create_ticket(status: status, reporter_id: index + 1)
     end
     create_ticket(status: "resolved")
 
     expect(queue.tickets).to eq(active)
-    expect(queue.status).to eq("open")
+    expect(queue.status).to eq("submitted")
     expect(queue.sort).to eq("priority")
     expect(queue.page).to eq(1)
   end
@@ -82,7 +82,8 @@ RSpec.describe TicketQueue do
   end
 
   it "includes every status for the all filter" do
-    tickets = %w[open assigned in_progress resolved].map { |status| create_ticket(status: status) }
+    tickets = %w[submitted rejected assigned in_progress ready_for_verification resolved closed]
+      .map { |status| create_ticket(status: status) }
 
     expect(queue(status: "all").tickets).to eq(tickets)
   end
@@ -135,7 +136,7 @@ RSpec.describe TicketQueue do
 
     [ nil, "", "unsupported", "resolved OR 1=1", [], {} ].each do |value|
       result = queue(status: value, sort: value)
-      expect(result.status).to eq("open")
+      expect(result.status).to eq("submitted")
       expect(result.sort).to eq("priority")
       expect(result.tickets).to eq([ active ])
     end
@@ -199,7 +200,7 @@ RSpec.describe TicketQueue do
     result = queue(sort: "newest", page: "2")
 
     expect(result.tickets).to eq([ active.first ])
-    expect(result.status).to eq("open")
+    expect(result.status).to eq("submitted")
     expect(result.sort).to eq("newest")
   end
 
@@ -268,7 +269,7 @@ RSpec.describe TicketQueue do
   it "keeps unassigned tickets in the results when preloading associations" do
     reporter = ManagerTicketQueueSpec::User.create!(name: "Reporter")
     equipment = ManagerTicketQueueSpec::Equipment.create!(name: "Pump")
-    unassigned = model.create!(status: "open", priority: "high", created_at: now,
+    unassigned = model.create!(status: "submitted", priority: "high", created_at: now,
       reporter: reporter, equipment: equipment)
     result = described_class.new(scope: model.preload(:equipment, :reporter, :assigned_technician))
 

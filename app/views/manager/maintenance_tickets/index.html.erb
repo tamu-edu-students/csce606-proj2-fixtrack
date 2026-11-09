@@ -6,7 +6,7 @@
   <%= form_with url: manager_maintenance_tickets_path, method: :get, class: "ticket-queue__filters" do %>
     <div>
       <%= label_tag :status, "Show tickets" %>
-      <%= select_tag :status, options_for_select([["Open", "open"], ["Resolved", "resolved"], ["All", "all"]], @queue.status) %>
+      <%= select_tag :status, options_for_select([["Submitted", "submitted"], ["Closed", "closed"], ["All", "all"]], @queue.status) %>
     </div>
     <div>
       <%= label_tag :sort, "Order by" %>
@@ -14,14 +14,14 @@
     </div>
     <%= submit_tag "Apply", name: nil %>
   <% end %>
-  <p>Open includes Open, Assigned, and In progress tickets.</p>
+  <p>Submitted includes Submitted, Assigned, and In progress tickets.</p>
 
   <% if @tickets.empty? %>
     <% if @queue.page > 1 %>
       <p>No tickets on this page.</p>
       <%= link_to "Back to first page", manager_maintenance_tickets_path(status: @queue.status, sort: @queue.sort) %>
     <% else %>
-      <p><%= { "open" => "No unresolved tickets.", "resolved" => "No resolved tickets.", "all" => "No tickets yet." }.fetch(@queue.status) %></p>
+      <p><%= { "submitted" => "No submitted tickets.", "closed" => "No closed tickets.", "all" => "No tickets yet." }.fetch(@queue.status) %></p>
       <% unless @queue.status == "all" %>
         <%= link_to "View all tickets", manager_maintenance_tickets_path(status: "all", sort: @queue.sort) %>
       <% end %>

@@ -68,7 +68,7 @@ RSpec.describe MaintenanceTicket, type: :model do
     end
 
     it "accepts supported statuses" do
-      %w[open assigned in_progress resolved].each do |status|
+      described_class::STATUSES.each do |status|
         ticket = described_class.new(status: status)
 
         expect(field_errors(ticket, :status)).to be_empty
