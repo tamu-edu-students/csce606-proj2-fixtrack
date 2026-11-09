@@ -66,7 +66,7 @@ RSpec.describe TicketQueue do
     active = %w[submitted assigned in_progress].each_with_index.map do |status, index|
       create_ticket(status: status, reporter_id: index + 1)
     end
-    create_ticket(status: "resolved")
+    create_ticket(status: "closed")
 
     expect(queue.tickets).to eq(active)
     expect(queue.status).to eq("submitted")
@@ -74,15 +74,15 @@ RSpec.describe TicketQueue do
     expect(queue.page).to eq(1)
   end
 
-  it "filters resolved tickets" do
+  it "filters closed tickets" do
     create_ticket
-    resolved = create_ticket(status: "resolved")
+    closed = create_ticket(status: "closed")
 
-    expect(queue(status: "resolved").tickets).to eq([ resolved ])
+    expect(queue(status: "closed").tickets).to eq([ closed ])
   end
 
   it "includes every status for the all filter" do
-    tickets = %w[submitted rejected assigned in_progress ready_for_verification resolved closed]
+    tickets = %w[submitted rejected assigned in_progress ready_for_verification closed]
       .map { |status| create_ticket(status: status) }
 
     expect(queue(status: "all").tickets).to eq(tickets)
@@ -132,9 +132,9 @@ RSpec.describe TicketQueue do
 
   it "defaults malformed filter and sort values without executing them as SQL" do
     active = create_ticket
-    create_ticket(status: "resolved")
+    create_ticket(status: "closed")
 
-    [ nil, "", "unsupported", "resolved OR 1=1", [], {} ].each do |value|
+    [ nil, "", "unsupported", "closed OR 1=1", [], {} ].each do |value|
       result = queue(status: value, sort: value)
       expect(result.status).to eq("submitted")
       expect(result.sort).to eq("priority")
@@ -195,7 +195,7 @@ RSpec.describe TicketQueue do
   end
 
   it "filters and orders before paginating" do
-    26.times { create_ticket(status: "resolved") }
+    26.times { create_ticket(status: "closed") }
     active = Array.new(26) { |index| create_ticket(created_at: now + index) }
     result = queue(sort: "newest", page: "2")
 

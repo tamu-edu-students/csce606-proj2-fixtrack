@@ -74,7 +74,7 @@ repair records, or Reporter verification.
 
 **Description:** Provides Technician assigned-ticket work, status updates,
 and repair records. The Technician moves a ticket to `Ready for Verification`;
-the Reporter decides whether it is resolved or reopened.
+the Reporter decides whether it is closed or reopened.
 
 **Boundary:** Owns Technician work after assignment, including repair status
 and documentation. It does not own Manager assignment, Reporter ticket
@@ -235,7 +235,7 @@ preparation.
 
 - **GitHub issue:** [#22](https://github.com/tamu-edu-students/csce606-proj2-fixtrack/issues/22)
 - **Epic:** Ticket intake and verification
-- **Scope:** Allow the Reporter to mark a `Ready for Verification` ticket `Resolved` or reopen it with a required reason. A manager may override with a reason.
+- **Scope:** Allow the Reporter to mark a `Ready for Verification` ticket `Closed` or reopen it with a required reason. A manager may override with a reason.
 - **Depends on:** C3, E2, E3
 
 ### C5 — View equipment maintenance history

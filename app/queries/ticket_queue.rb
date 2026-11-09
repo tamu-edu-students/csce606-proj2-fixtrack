@@ -4,7 +4,7 @@
 # This class does not perform authentication or authorization.
 class TicketQueue
   PAGE_SIZE = 25
-  STATUS_OPTIONS = %w[submitted resolved closed all].freeze
+  STATUS_OPTIONS = %w[submitted closed all].freeze
   SORT_OPTIONS = %w[priority newest oldest].freeze
   SUBMITTED_STATUSES = %w[submitted assigned in_progress].freeze
   # Bound pagination to a practical number of pages.

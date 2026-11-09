@@ -104,10 +104,10 @@ RSpec.describe "Manager ticket queue controller" do
   it "passes supported request parameters into the queue with preloaded associations" do
     expect(scope).to receive(:preload).with(:equipment, :reporter, :assigned_technician).and_return(scope)
     expect(TicketQueue).to receive(:new).with(
-      scope: scope, status: "resolved", sort: "newest", page: "2"
+      scope: scope, status: "closed", sort: "newest", page: "2"
     ).and_return(query)
 
-    expect(get_queue("?status=resolved&sort=newest&page=2").first).to eq(200)
+    expect(get_queue("?status=closed&sort=newest&page=2").first).to eq(200)
   end
 
   it "does not pass arbitrary request parameters into the query" do
@@ -155,26 +155,26 @@ RSpec.describe "Manager ticket queue controller" do
   end
 
   it "uses a GET form with selected filters and resets pagination on apply" do
-    allow(query).to receive_messages(status: "resolved", sort: "newest", page: 2, previous_page?: true)
+    allow(query).to receive_messages(status: "closed", sort: "newest", page: 2, previous_page?: true)
     html = document
     form = html.at_css('form')
 
     expect(form["method"]).to eq("get")
     expect(form["action"]).to eq("/manager/maintenance_tickets")
-    expect(form.at_css('select[name="status"] option[selected]')["value"]).to eq("resolved")
+    expect(form.at_css('select[name="status"] option[selected]')["value"]).to eq("closed")
     expect(form.at_css('select[name="sort"] option[selected]')["value"]).to eq("newest")
     expect(form.css('[name="page"]')).to be_empty
   end
 
   it "preserves filter and order selections in pagination links" do
-    allow(query).to receive_messages(status: "resolved", sort: "newest", page: 2,
+    allow(query).to receive_messages(status: "closed", sort: "newest", page: 2,
       previous_page?: true, next_page?: true)
     html = document
     previous_params = Rack::Utils.parse_query(URI(html.at_css('a[rel="prev"]')["href"]).query)
     next_params = Rack::Utils.parse_query(URI(html.at_css('a[rel="next"]')["href"]).query)
 
-    expect(previous_params).to eq("status" => "resolved", "sort" => "newest", "page" => "1")
-    expect(next_params).to eq("status" => "resolved", "sort" => "newest", "page" => "3")
+    expect(previous_params).to eq("status" => "closed", "sort" => "newest", "page" => "1")
+    expect(next_params).to eq("status" => "closed", "sort" => "newest", "page" => "3")
   end
 
   it "hides pagination when there is only one page" do
