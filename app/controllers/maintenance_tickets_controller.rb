@@ -16,20 +16,15 @@ class MaintenanceTicketsController < ApplicationController
     @maintenance_ticket.reporter = current_user
 
     if @maintenance_ticket.save
-      if current_user.technician?
-        redirect_to maintenance_tickets_path,
-                    notice: "Maintenance ticket created successfully."
-      else
-        redirect_to @maintenance_ticket,
-                    notice: "Maintenance ticket created successfully."
-      end
+      redirect_to @maintenance_ticket,
+                  notice: "Maintenance ticket created successfully."
     else
       render :new, status: :unprocessable_entity
     end
   end
 
   def show
-    @maintenance_ticket = ticket_scope.find(params[:id])
+    @maintenance_ticket = show_scope.find(params[:id])
   end
 
   private
@@ -37,6 +32,16 @@ class MaintenanceTicketsController < ApplicationController
   def ticket_scope
     return MaintenanceTicket.all unless current_user&.technician?
 
+    technician_ticket_scope
+  end
+
+  def show_scope
+    return MaintenanceTicket.all unless current_user&.technician?
+
+    technician_ticket_scope.or(MaintenanceTicket.where(reporter: current_user))
+  end
+
+  def technician_ticket_scope
     MaintenanceTicket.where(
       assigned_technician: current_user,
       status: TECHNICIAN_VISIBLE_STATUSES

@@ -23,6 +23,9 @@ RSpec.describe MaintenanceTicketsController do
   let(:open_ticket) { create_ticket("Open ticket", technician, status: "open") }
   let(:resolved_ticket) { create_ticket("Resolved ticket", technician, status: "resolved") }
   let(:other_technician_ticket) { create_ticket("Other technician ticket", other_technician, status: "assigned") }
+  let(:self_reported_ticket) do
+    create_ticket("Self-reported ticket", nil, status: "open", reporter_user: technician)
+  end
   let(:maintenance_tickets_controller) { described_class.new }
 
   before do
@@ -37,6 +40,7 @@ RSpec.describe MaintenanceTicketsController do
       open_ticket
       resolved_ticket
       other_technician_ticket
+      self_reported_ticket
 
       maintenance_tickets_controller.index
 
@@ -68,6 +72,17 @@ RSpec.describe MaintenanceTicketsController do
       expect(maintenance_tickets_controller.instance_variable_get(:@maintenance_ticket)).to eq(ticket)
     end
 
+    it "allows the technician to open a ticket they reported even if it is unassigned" do
+      ticket = self_reported_ticket
+      maintenance_tickets_controller.define_singleton_method(:params) do
+        ActionController::Parameters.new(id: ticket.id)
+      end
+
+      maintenance_tickets_controller.show
+
+      expect(maintenance_tickets_controller.instance_variable_get(:@maintenance_ticket)).to eq(ticket)
+    end
+
     it "does not allow the technician to open another technician's ticket" do
       ticket = other_technician_ticket
       maintenance_tickets_controller.define_singleton_method(:params) do
@@ -90,7 +105,7 @@ RSpec.describe MaintenanceTicketsController do
   end
 
   describe "#create" do
-    it "returns technicians to the ticket list after submitting an unassigned ticket" do
+    it "redirects technicians to the ticket they submitted" do
       ticket = instance_double(MaintenanceTicket, reporter: nil, save: true)
       equipment_id = equipment.id
       maintenance_tickets_controller.define_singleton_method(:params) do
@@ -103,27 +118,26 @@ RSpec.describe MaintenanceTicketsController do
           }
         )
       end
-      maintenance_tickets_controller.define_singleton_method(:maintenance_tickets_path) { "/issues" }
       allow(MaintenanceTicket).to receive(:new).and_return(ticket)
 
       expect(ticket).to receive(:reporter=).with(technician)
       expect(maintenance_tickets_controller).to receive(:redirect_to).with(
-        "/issues",
-        notice: "Ticket submitted. It will appear in your list once it is assigned to you."
+        ticket,
+        notice: "Maintenance ticket created successfully."
       )
 
       maintenance_tickets_controller.create
     end
   end
 
-  def create_ticket(title, assigned_technician, status:)
+  def create_ticket(title, assigned_technician, status:, reporter_user: reporter)
     MaintenanceTicket.create!(
       title: title,
       description: "Repair required",
       priority: "medium",
       status: status,
       equipment: equipment,
-      reporter: reporter,
+      reporter: reporter_user,
       assigned_technician: assigned_technician
     )
   end
