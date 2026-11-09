@@ -57,6 +57,7 @@ class MaintenanceTicketsController < ApplicationController
     if user.role == "technician" && ticket.assigned_technician_id != user.id
       statuses = []
     end
+    statuses += [ "submitted" ] if ticket.status == "rejected" && ticket.reporter_id == user.id
     statuses += [ "closed" ] if ticket.reporter_id == user.id
     statuses
   end

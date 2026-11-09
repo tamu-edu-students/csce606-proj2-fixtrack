@@ -7,12 +7,12 @@ RSpec.describe MaintenanceTicketsController do
   let(:technician) { Struct.new(:id, :role).new(2, "technician") }
   let(:reporter) { Struct.new(:id, :role).new(3, "reporter") }
   let(:ticket) do
-    ticket_class = Struct.new(:id, :assigned_technician_id, :reporter_id) do
+    ticket_class = Struct.new(:id, :assigned_technician_id, :reporter_id, :status) do
       def update(**_attributes)
         true
       end
     end
-    ticket_class.new(12, technician.id, reporter.id)
+    ticket_class.new(12, technician.id, reporter.id, "assigned")
   end
 
   it "allows managers to submit, reject, or assign tickets" do
@@ -60,10 +60,21 @@ RSpec.describe MaintenanceTicketsController do
     expect(controller.status_options_for(reporter, ticket)).to eq([ "closed" ])
   end
 
+  it "allows the reporting user to resubmit a rejected ticket" do
+    ticket.status = "rejected"
+
+    expect(controller.status_options_for(reporter, ticket)).to eq(%w[submitted closed])
+  end
+
+  it "does not allow the reporting user to resubmit a ticket that was not rejected" do
+    expect(controller.status_options_for(reporter, ticket)).not_to include("submitted")
+  end
+
   it "does not allow a reporter who did not create the ticket to change its status" do
     ticket.reporter_id = 4
+    ticket.status = "rejected"
 
-    expect(controller.status_options_for(reporter, ticket)).to be_empty
+    expect(controller.status_options_for(reporter, ticket)).to eq([])
   end
 
   describe "#update_status" do
@@ -155,6 +166,27 @@ RSpec.describe MaintenanceTicketsController do
       )
 
       update_status_as(reporter, "closed")
+    end
+
+    it "allows the reporting user to resubmit a rejected ticket" do
+      ticket.status = "rejected"
+      expect(ticket).to receive(:update).with(status: "submitted").and_return(true)
+      expect(controller).to receive(:redirect_to).with(
+        "/issues/12",
+        notice: "Ticket status updated."
+      )
+
+      update_status_as(reporter, "submitted")
+    end
+
+    it "rejects resubmission when the ticket is not rejected" do
+      expect(ticket).not_to receive(:update)
+      expect(controller).to receive(:redirect_to).with(
+        "/issues/12",
+        alert: "You are not allowed to set this status."
+      )
+
+      update_status_as(reporter, "submitted")
     end
 
     it "rejects a reporter closing a ticket they did not create" do
