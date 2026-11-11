@@ -3,7 +3,8 @@ Rails.application.routes.draw do
     registrations: "users/registrations"
   }
   resources :maintenance_tickets, only: %i[new create show]
-  resources :users, only: [:new, :create], path: "manage_users"
+  resources :users, only: [ :new, :create ], path: "manage_users"
+  get "/manage_users", to: "users#index", as: :manage_users
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

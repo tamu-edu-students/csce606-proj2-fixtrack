@@ -1,11 +1,15 @@
-#code for handling manager provision of users
+# code for handling manager provision of users
 class UsersController < ApplicationController
-    #decise auth methods
+    # decise auth methods
     before_action :authenticate_user!
     before_action :require_manager!
 
 def new
     @user = User.new
+end
+
+def index
+    @users = current_user.company.users
 end
 
 def create

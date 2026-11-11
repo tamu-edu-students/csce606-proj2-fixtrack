@@ -1,5 +1,5 @@
 class Users::RegistrationsController < Devise::RegistrationsController
-  before_action :set_manager_role, only: [:create]
+  before_action :set_manager_role, only: [ :create ]
 
   private
 

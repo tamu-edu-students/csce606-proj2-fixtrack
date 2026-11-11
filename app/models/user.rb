@@ -12,7 +12,7 @@ class User < ApplicationRecord
   before_validation :build_company, on: :create
   before_validation :set_manager_role, on: :create
 
-  validates :company_name, presence: true, 
+  validates :company_name, presence: true,
             on: :create,
             if: -> { company.nil? }
 

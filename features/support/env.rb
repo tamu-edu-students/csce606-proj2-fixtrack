@@ -51,7 +51,7 @@ end
 # See https://github.com/cucumber/cucumber-rails/blob/master/features/choose_javascript_database_strategy.feature
 Cucumber::Rails::Database.javascript_strategy = :truncation
 
-#require warden hepler in order to use login_as method in step definitions
+# require warden hepler in order to use login_as method in step definitions
 require "warden/test/helpers"
 
 Warden.test_mode!

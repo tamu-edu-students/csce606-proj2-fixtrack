@@ -57,4 +57,46 @@ RSpec.describe "Users", type: :request do
       expect(technician.company).to eq(company)
     end
   end
+
+  describe "GET /manage_users" do
+    let!(:technician) do
+      User.create!(
+        name: "Clark Kent",
+        email: "clark@example.com",
+        password: "password123",
+        password_confirmation: "password123",
+        role: "technician",
+        company: company
+      )
+    end
+
+    let!(:reporter) do
+      User.create!(
+        name: "Lois Lane",
+        email: "lois@example.com",
+        password: "password123",
+        password_confirmation: "password123",
+        role: "reporter",
+        company: company
+      )
+    end
+
+    it "allows the manager to access the list of users" do
+      get manage_users_path
+
+      expect(response).to have_http_status(:success)
+    end
+
+    it "displays users and their roles" do
+      get manage_users_path
+
+      expect(response.body).to include("Bruce Wayne")
+      expect(response.body).to include("Clark Kent")
+      expect(response.body).to include("Lois Lane")
+
+      expect(response.body).to include("Manager")
+      expect(response.body).to include("Technician")
+      expect(response.body).to include("Reporter")
+    end
+  end
 end
