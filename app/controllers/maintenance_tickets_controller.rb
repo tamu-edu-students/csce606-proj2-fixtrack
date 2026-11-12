@@ -1,14 +1,22 @@
 class MaintenanceTicketsController < ApplicationController
+<<<<<<< HEAD
   STATUS_OPTIONS_BY_ROLE = {
     "manager" => %w[submitted rejected assigned],
     "technician" => %w[assigned in_progress ready_for_verification]
+=======
+  TECHNICIAN_VISIBLE_STATUSES = %w[assigned in_progress].freeze
+  TICKET_ACTION_PARTIALS = {
+    "manager" => %w[priority_update technician_assignment].freeze,
+    "technician" => %w[repair_record_form].freeze
+>>>>>>> main
   }.freeze
 
   before_action :authenticate_user!
   helper_method :status_options_for
 
   def index
-    @maintenance_tickets = MaintenanceTicket.order(created_at: :desc)
+    @maintenance_tickets = ticket_scope.order(created_at: :desc)
+    @empty_state_message = current_user.technician? ? "You have no tickets to work on." : "No issues have been reported."
   end
 
   def new
@@ -28,7 +36,8 @@ class MaintenanceTicketsController < ApplicationController
   end
 
   def show
-    @maintenance_ticket = MaintenanceTicket.find(params[:id])
+    @maintenance_ticket = show_scope.find(params[:id])
+    @ticket_action_partials = TICKET_ACTION_PARTIALS.fetch(current_user.role, [])
   end
 
   def update_status
@@ -63,6 +72,25 @@ class MaintenanceTicketsController < ApplicationController
   end
 
   private
+
+  def ticket_scope
+    return MaintenanceTicket.all unless current_user&.technician?
+
+    technician_ticket_scope
+  end
+
+  def show_scope
+    return MaintenanceTicket.all unless current_user&.technician?
+
+    technician_ticket_scope.or(MaintenanceTicket.where(reporter: current_user))
+  end
+
+  def technician_ticket_scope
+    MaintenanceTicket.where(
+      assigned_technician: current_user,
+      status: TECHNICIAN_VISIBLE_STATUSES
+    )
+  end
 
   def ticket_params
     params.require(:maintenance_ticket).permit(
