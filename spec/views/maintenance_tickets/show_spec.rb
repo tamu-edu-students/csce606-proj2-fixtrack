@@ -30,6 +30,7 @@ RSpec.describe "maintenance_tickets/show", type: :view do
 
   before do
     view.define_singleton_method(:current_user) { nil }
+    view.define_singleton_method(:status_options_for) { |_user, _ticket| [] }
   end
 
   describe "shared information" do

@@ -1,14 +1,13 @@
 class MaintenanceTicketsController < ApplicationController
-<<<<<<< HEAD
   STATUS_OPTIONS_BY_ROLE = {
     "manager" => %w[submitted rejected assigned],
     "technician" => %w[assigned in_progress ready_for_verification]
-=======
+  }.freeze
+
   TECHNICIAN_VISIBLE_STATUSES = %w[assigned in_progress].freeze
   TICKET_ACTION_PARTIALS = {
     "manager" => %w[priority_update technician_assignment].freeze,
     "technician" => %w[repair_record_form].freeze
->>>>>>> main
   }.freeze
 
   before_action :authenticate_user!
