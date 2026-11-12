@@ -1,4 +1,6 @@
 class Equipment < ApplicationRecord
+  has_many :maintenance_tickets, inverse_of: :equipment
+
   STATUSES = [ "Available", "Under Maintenance", "Out of Service" ].freeze
 
   normalizes :name, :asset_identifier, :location, with: ->(value) { value.strip }

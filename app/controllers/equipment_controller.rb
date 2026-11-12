@@ -19,6 +19,7 @@ class EquipmentController < ApplicationController
 
   def show
     authorize @equipment
+    @open_tickets = @equipment.maintenance_tickets.outstanding.order(created_at: :desc, id: :desc)
   end
 
   def new

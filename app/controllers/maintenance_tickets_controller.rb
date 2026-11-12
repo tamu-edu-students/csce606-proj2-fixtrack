@@ -6,7 +6,7 @@ class MaintenanceTicketsController < ApplicationController
   end
 
   def new
-    @maintenance_ticket = MaintenanceTicket.new
+    @maintenance_ticket = MaintenanceTicket.new(equipment_id: params[:equipment_id])
   end
 
   def create

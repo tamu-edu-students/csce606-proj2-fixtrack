@@ -28,6 +28,31 @@
   </dd>
 </dl>
 
+<section aria-labelledby="open-tickets-heading">
+  <h2 id="open-tickets-heading">Open tickets for this equipment</h2>
+  <% if @open_tickets.any? %>
+    <table>
+      <caption>Existing problems for <%= @equipment.name %></caption>
+      <thead>
+        <tr><th scope="col">Problem summary</th><th scope="col">Priority</th><th scope="col">Status</th></tr>
+      </thead>
+      <tbody>
+        <% @open_tickets.each do |ticket| %>
+          <tr>
+            <td><%= ticket.title %></td>
+            <td><%= ticket.priority.humanize %></td>
+            <td><%= ticket.status.humanize %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p>No open tickets for this equipment.</p>
+  <% end %>
+  <p>Check existing problems before reporting a duplicate. You can still report an urgent problem.</p>
+  <p><%= link_to "Report a problem for this equipment", new_maintenance_ticket_path(equipment_id: @equipment.id) %></p>
+</section>
+
 <p><%= link_to "All equipment", equipment_index_path %></p>
 
 <% if EquipmentPolicy.new(current_user, @equipment).update? %>
