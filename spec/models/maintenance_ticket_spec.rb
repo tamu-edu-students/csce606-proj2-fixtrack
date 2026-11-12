@@ -60,15 +60,15 @@ RSpec.describe MaintenanceTicket, type: :model do
     end
 
     it "rejects an unsupported status" do
-      ticket = described_class.new(status: "cancelled")
+      %w[cancelled open resolved].each do |status|
+        ticket = described_class.new(status: status)
 
-      expect(field_errors(ticket, :status)).to include(
-        "is not included in the list"
-      )
+        expect(field_errors(ticket, :status)).to include("is not included in the list")
+      end
     end
 
     it "accepts supported statuses" do
-      %w[open assigned in_progress resolved].each do |status|
+      described_class::STATUSES.each do |status|
         ticket = described_class.new(status: status)
 
         expect(field_errors(ticket, :status)).to be_empty

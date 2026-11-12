@@ -1,4 +1,8 @@
 class MaintenanceTicket < ApplicationRecord
+  STATUSES = %w[
+    submitted rejected assigned in_progress ready_for_verification closed
+  ].freeze
+
   belongs_to :equipment
   belongs_to :reporter, class_name: "User"
   belongs_to :assigned_technician,
@@ -14,10 +18,7 @@ class MaintenanceTicket < ApplicationRecord
 
   validates :status,
             presence: true,
-            inclusion: {
-              in: %w[open assigned in_progress resolved]
-            }
-
+            inclusion: { in: STATUSES }
 
   validate :equipment_id_must_reference_existing_equipment
 

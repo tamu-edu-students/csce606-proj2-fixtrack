@@ -15,7 +15,7 @@ RSpec.describe "Manager ticket queue controller" do
   let(:user) { Struct.new(:role).new("manager") }
   let(:scope) { instance_double(ActiveRecord::Relation) }
   let(:query) do
-    instance_double(TicketQueue, tickets: [], status: "open", sort: "priority",
+    instance_double(TicketQueue, tickets: [], status: "submitted", sort: "priority",
       page: 1, previous_page?: false, next_page?: false)
   end
 
@@ -66,7 +66,7 @@ RSpec.describe "Manager ticket queue controller" do
         status, _headers, body = get_queue
 
         expect(status).to eq(200)
-        expect(body).to include("Manager ticket queue", "No unresolved tickets.")
+        expect(body).to include("Manager ticket queue", "No submitted tickets.")
       end
     end
   end
@@ -104,10 +104,10 @@ RSpec.describe "Manager ticket queue controller" do
   it "passes supported request parameters into the queue with preloaded associations" do
     expect(scope).to receive(:preload).with(:equipment, :reporter, :assigned_technician).and_return(scope)
     expect(TicketQueue).to receive(:new).with(
-      scope: scope, status: "resolved", sort: "newest", page: "2"
+      scope: scope, status: "closed", sort: "newest", page: "2"
     ).and_return(query)
 
-    expect(get_queue("?status=resolved&sort=newest&page=2").first).to eq(200)
+    expect(get_queue("?status=closed&sort=newest&page=2").first).to eq(200)
   end
 
   it "does not pass arbitrary request parameters into the query" do
@@ -155,33 +155,33 @@ RSpec.describe "Manager ticket queue controller" do
   end
 
   it "uses a GET form with selected filters and resets pagination on apply" do
-    allow(query).to receive_messages(status: "resolved", sort: "newest", page: 2, previous_page?: true)
+    allow(query).to receive_messages(status: "closed", sort: "newest", page: 2, previous_page?: true)
     html = document
     form = html.at_css('form')
 
     expect(form["method"]).to eq("get")
     expect(form["action"]).to eq("/manager/maintenance_tickets")
-    expect(form.at_css('select[name="status"] option[selected]')["value"]).to eq("resolved")
+    expect(form.at_css('select[name="status"] option[selected]')["value"]).to eq("closed")
     expect(form.at_css('select[name="sort"] option[selected]')["value"]).to eq("newest")
     expect(form.css('[name="page"]')).to be_empty
   end
 
   it "preserves filter and order selections in pagination links" do
-    allow(query).to receive_messages(status: "resolved", sort: "newest", page: 2,
+    allow(query).to receive_messages(status: "closed", sort: "newest", page: 2,
       previous_page?: true, next_page?: true)
     html = document
     previous_params = Rack::Utils.parse_query(URI(html.at_css('a[rel="prev"]')["href"]).query)
     next_params = Rack::Utils.parse_query(URI(html.at_css('a[rel="next"]')["href"]).query)
 
-    expect(previous_params).to eq("status" => "resolved", "sort" => "newest", "page" => "1")
-    expect(next_params).to eq("status" => "resolved", "sort" => "newest", "page" => "3")
+    expect(previous_params).to eq("status" => "closed", "sort" => "newest", "page" => "1")
+    expect(next_params).to eq("status" => "closed", "sort" => "newest", "page" => "3")
   end
 
   it "hides pagination when there is only one page" do
     expect(document.css('nav[aria-label="Ticket queue pages"]')).to be_empty
   end
 
-  { "open" => "No unresolved tickets.", "resolved" => "No resolved tickets.", "all" => "No tickets yet." }.each do |filter, message|
+  { "submitted" => "No submitted tickets.", "closed" => "No closed tickets.", "all" => "No tickets yet." }.each do |filter, message|
     it "explains empty results for the #{filter} filter" do
       allow(query).to receive(:status).and_return(filter)
       html = document
@@ -198,11 +198,11 @@ RSpec.describe "Manager ticket queue controller" do
   end
 
   it "offers a return to page one for an empty out-of-range page" do
-    allow(query).to receive_messages(status: "resolved", sort: "oldest", page: 100, previous_page?: true)
+    allow(query).to receive_messages(status: "closed", sort: "oldest", page: 100, previous_page?: true)
     html = document
     link = html.css('a').find { |element| element.text == "Back to first page" }
 
     expect(html.text).to include("No tickets on this page.")
-    expect(Rack::Utils.parse_query(URI(link["href"]).query)).to eq("status" => "resolved", "sort" => "oldest")
+    expect(Rack::Utils.parse_query(URI(link["href"]).query)).to eq("status" => "closed", "sort" => "oldest")
   end
 end

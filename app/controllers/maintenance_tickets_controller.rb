@@ -1,4 +1,9 @@
 class MaintenanceTicketsController < ApplicationController
+  STATUS_OPTIONS_BY_ROLE = {
+    "manager" => %w[submitted rejected assigned],
+    "technician" => %w[assigned in_progress ready_for_verification]
+  }.freeze
+
   TECHNICIAN_VISIBLE_STATUSES = %w[assigned in_progress].freeze
   TICKET_ACTION_PARTIALS = {
     "manager" => %w[priority_update technician_assignment].freeze,
@@ -6,6 +11,7 @@ class MaintenanceTicketsController < ApplicationController
   }.freeze
 
   before_action :authenticate_user!
+  helper_method :status_options_for
 
   def index
     @maintenance_tickets = ticket_scope.order(created_at: :desc)
@@ -31,6 +37,37 @@ class MaintenanceTicketsController < ApplicationController
   def show
     @maintenance_ticket = show_scope.find(params[:id])
     @ticket_action_partials = TICKET_ACTION_PARTIALS.fetch(current_user.role, [])
+  end
+
+  def update_status
+    ticket = MaintenanceTicket.find(params[:id])
+    requested_status = params[:status]
+
+    unless status_options_for(current_user, ticket).include?(requested_status)
+      redirect_to maintenance_ticket_path(ticket),
+                  alert: "You are not allowed to set this status."
+      return
+    end
+
+    if ticket.update(status: requested_status)
+      redirect_to maintenance_ticket_path(ticket),
+                  notice: "Ticket status updated."
+    else
+      redirect_to maintenance_ticket_path(ticket),
+                  alert: ticket.errors.full_messages.to_sentence
+    end
+  end
+
+  def status_options_for(user, ticket)
+    return [] unless user
+
+    statuses = STATUS_OPTIONS_BY_ROLE.fetch(user.role, [])
+    if user.role == "technician" && ticket.assigned_technician_id != user.id
+      statuses = []
+    end
+    statuses += [ "submitted" ] if ticket.status == "rejected" && ticket.reporter_id == user.id
+    statuses += [ "closed" ] if ticket.reporter_id == user.id
+    statuses
   end
 
   private

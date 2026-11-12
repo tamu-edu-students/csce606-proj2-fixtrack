@@ -20,11 +20,11 @@ RSpec.describe MaintenanceTicketsController do
   end
   let(:assigned_ticket) { create_ticket("Assigned ticket", technician, status: "assigned") }
   let(:in_progress_ticket) { create_ticket("In-progress ticket", technician, status: "in_progress") }
-  let(:open_ticket) { create_ticket("Open ticket", technician, status: "open") }
-  let(:resolved_ticket) { create_ticket("Resolved ticket", technician, status: "resolved") }
+  let(:submitted_ticket) { create_ticket("Submitted ticket", technician, status: "submitted") }
+  let(:closed_ticket) { create_ticket("Closed ticket", technician, status: "closed") }
   let(:other_technician_ticket) { create_ticket("Other technician ticket", other_technician, status: "assigned") }
   let(:self_reported_ticket) do
-    create_ticket("Self-reported ticket", nil, status: "open", reporter_user: technician)
+    create_ticket("Self-reported ticket", nil, status: "submitted", reporter_user: technician)
   end
   let(:maintenance_tickets_controller) { described_class.new }
 
@@ -37,8 +37,8 @@ RSpec.describe MaintenanceTicketsController do
     it "lists only assigned and in-progress tickets assigned to the signed-in technician" do
       assigned_ticket
       in_progress_ticket
-      open_ticket
-      resolved_ticket
+      submitted_ticket
+      closed_ticket
       other_technician_ticket
       self_reported_ticket
 
@@ -83,7 +83,7 @@ RSpec.describe MaintenanceTicketsController do
     end
 
     it "does not assign role-specific action partials to reporters" do
-      ticket = create_ticket("Reported ticket", nil, status: "open", reporter_user: reporter)
+      ticket = create_ticket("Reported ticket", nil, status: "submitted", reporter_user: reporter)
       signed_in_reporter = reporter
       maintenance_tickets_controller.define_singleton_method(:current_user) { signed_in_reporter }
       maintenance_tickets_controller.define_singleton_method(:params) do
@@ -126,8 +126,8 @@ RSpec.describe MaintenanceTicketsController do
       expect { maintenance_tickets_controller.show }.to raise_error(ActiveRecord::RecordNotFound)
     end
 
-    %w[open resolved].each do |status|
-      it "does not allow the technician to open an assigned #{status} ticket" do
+    %w[submitted closed ready_for_verification].each do |status|
+      it "does not allow the technician to view an assigned #{status} ticket" do
         ticket = create_ticket("#{status.humanize} ticket", technician, status: status)
         maintenance_tickets_controller.define_singleton_method(:params) do
           ActionController::Parameters.new(id: ticket.id)

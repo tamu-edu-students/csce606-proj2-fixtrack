@@ -42,7 +42,7 @@ Stakeholders
 • Organization administrators
 These stakeholders benefit from accurate equipment status, documented maintenance history, and improved visibility into unresolved problems.
 Core Problem and Value Proposition
-A small maintenance crew will use spreadsheets and emails to keep track of any difficulties with the equipment. Paper records or telephone communication will be used to keep tabs on who has what down, who is working on it, what has been done, and what needs to be followed up on to see whether or not a problem was resolved.
+A small maintenance crew will use spreadsheets and emails to keep track of any difficulties with the equipment. Paper records or telephone communication will be used to keep tabs on who has what down, who is working on it, what has been done, and what needs to be followed up on to verify that a reported problem was addressed.
 FixTrack provides one place where all equipment, maintenance tickets, technicians, and repairs remain connected.
 They won’t need to search through different emails or spreadsheets to know the equipment's current state and maintenance history, since everything is in one application.
 MVP Features
@@ -73,7 +73,7 @@ Users can view and update tickets according to their permissions.
 4. Technician Assignment and Ticket Workflow
 Managers can assign maintenance tickets to technicians.
 Technicians can view their assigned tickets and update the workflow through states such as:
-Open → Assigned → In Progress → Resolved
+Submitted → Assigned → In Progress → Ready for Verification → Closed
 Invalid or unauthorized transitions will be rejected with an appropriate error message.
 5. Repair Records and Equipment History
 Technicians can document completed repair work.
@@ -103,7 +103,7 @@ If the MVP is completed early, the team may attempt:
 2. Email Notifications
 • Users receive notifications for assignments or important ticket changes.
 3. Maintenance Dashboard
-• Summary information such as open tickets, resolved tickets, and equipment currently under repair.
+• Summary information such as submitted tickets, closed tickets, and equipment currently under repair.
 Initial User Stories
 US-1 - User Authentication
 As a user, I want to securely log in to FixTrack so that I can access maintenance information appropriate to my account.
