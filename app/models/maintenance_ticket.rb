@@ -1,4 +1,6 @@
 class MaintenanceTicket < ApplicationRecord
+  scope :outstanding, -> { where(status: %w[open assigned in_progress]) }
+
   belongs_to :equipment
   belongs_to :reporter, class_name: "User"
   belongs_to :assigned_technician,
