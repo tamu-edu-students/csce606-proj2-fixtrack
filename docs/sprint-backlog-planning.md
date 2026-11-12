@@ -44,7 +44,7 @@ dispatch, repair, or verification behavior that those permissions protect.
 
 ### Epic B — Equipment management and discovery
 
-**Description:** Provides equipment records, equipment search, open-ticket
+**Description:** Provides equipment records, equipment search, outstanding-ticket
 visibility for selected equipment, and equipment maintenance history.
 
 **Boundary:** Owns equipment-centered records and discovery. It does not own
@@ -153,11 +153,11 @@ depend on Sprint 2 stories.
 - **Scope:** Search for equipment by name or asset identifier and select the correct equipment for reporting.
 - **Depends on:** A1, A3, B1
 
-### B3 — View open tickets for equipment
+### B3 — View outstanding tickets for equipment
 
 - **GitHub issue:** [#19](https://github.com/tamu-edu-students/csce606-proj2-fixtrack/issues/19)
 - **Epic:** Equipment management
-- **Scope:** Display open tickets for the selected equipment while excluding tickets belonging to other equipment.
+- **Scope:** Display tickets in active workflow statuses (`Submitted`, `Assigned`, `In Progress`, or `Ready for Verification`) for the selected equipment while excluding tickets belonging to other equipment.
 - **Depends on:** A1, A3, B1
 
 ### C1 — Report an equipment problem
@@ -221,14 +221,14 @@ preparation.
 
 - **GitHub issue:** [#10](https://github.com/tamu-edu-students/csce606-proj2-fixtrack/issues/10)
 - **Epic:** Repair workflow
-- **Scope:** Allow assigned technicians to move tickets through `Open`, `Assigned`, `In Progress`, and `Ready for Verification`.
+- **Scope:** Allow assigned technicians to move tickets through `Assigned`, `In Progress`, and `Ready for Verification`.
 - **Depends on:** E1
 
 ### E3 — Add a repair record
 
 - **GitHub issue:** [#11](https://github.com/tamu-edu-students/csce606-proj2-fixtrack/issues/11)
 - **Epic:** Repair workflow
-- **Scope:** Allow assigned technicians to add one or more validated repair records without automatically resolving the ticket.
+- **Scope:** Allow assigned technicians to add one or more validated repair records without automatically closing the ticket.
 - **Depends on:** E1, E2
 
 ### C4 — Verify or reopen a repaired ticket
