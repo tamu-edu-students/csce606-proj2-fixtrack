@@ -1,6 +1,6 @@
 <%= render "shared_information", ticket: @maintenance_ticket %>
-<%= render "priority_update", ticket: @maintenance_ticket %>
-<%= render "technician_assignment", ticket: @maintenance_ticket %>
+<% @ticket_action_partials.each do |partial| %>
+  <%= render partial, ticket: @maintenance_ticket %>
+<% end %>
 <%= render "status_update", ticket: @maintenance_ticket %>
-<%= render "repair_record_form", ticket: @maintenance_ticket %>
 <%= render "report_another_problem" %>

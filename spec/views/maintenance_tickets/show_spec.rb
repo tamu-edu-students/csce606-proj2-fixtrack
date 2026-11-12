@@ -66,12 +66,16 @@ RSpec.describe "maintenance_tickets/show", type: :view do
     end
   end
 
-  it "renders the shared details and report-another-problem link on the show page" do
+  it "renders shared details and the controller-selected action partials on the show page" do
     assign(:maintenance_ticket, ticket)
+    assign(:ticket_action_partials, %w[priority_update technician_assignment])
+    allow(view).to receive(:render).and_call_original
 
     render template: "maintenance_tickets/show"
     html = Nokogiri::HTML.fragment(rendered)
 
+    expect(view).to have_received(:render).with("priority_update", ticket: ticket)
+    expect(view).to have_received(:render).with("technician_assignment", ticket: ticket)
     expect(html.at_css("#ticket-details-title").text).to eq("Pump overheats")
     expect(html.at_css("a[href='#{new_maintenance_ticket_path}']").text).to eq("Report Another Problem")
     expect(html.text).to include("The pump stops during operation.", "Jamie Reporter")

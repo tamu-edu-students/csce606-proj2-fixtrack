@@ -1,10 +1,15 @@
 class MaintenanceTicketsController < ApplicationController
   TECHNICIAN_VISIBLE_STATUSES = %w[assigned in_progress].freeze
+  TICKET_ACTION_PARTIALS = {
+    "manager" => %w[priority_update technician_assignment].freeze,
+    "technician" => %w[repair_record_form].freeze
+  }.freeze
 
   before_action :authenticate_user!
 
   def index
     @maintenance_tickets = ticket_scope.order(created_at: :desc)
+    @empty_state_message = current_user.technician? ? "You have no tickets to work on." : "No issues have been reported."
   end
 
   def new
@@ -25,6 +30,7 @@ class MaintenanceTicketsController < ApplicationController
 
   def show
     @maintenance_ticket = show_scope.find(params[:id])
+    @ticket_action_partials = TICKET_ACTION_PARTIALS.fetch(current_user.role, [])
   end
 
   private

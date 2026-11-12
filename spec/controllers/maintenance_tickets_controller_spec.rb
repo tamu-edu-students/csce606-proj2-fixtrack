@@ -59,6 +59,40 @@ RSpec.describe MaintenanceTicketsController do
       maintenance_tickets_controller.show
 
       expect(maintenance_tickets_controller.instance_variable_get(:@maintenance_ticket)).to eq(ticket)
+      expect(maintenance_tickets_controller.instance_variable_get(:@ticket_action_partials))
+        .to eq(%w[repair_record_form])
+    end
+
+    it "assigns manager-only action partials to managers" do
+      ticket = assigned_ticket
+      manager = User.create!(
+        name: "Manager",
+        email: "manager@example.com",
+        password: "password",
+        role: "manager"
+      )
+      maintenance_tickets_controller.define_singleton_method(:current_user) { manager }
+      maintenance_tickets_controller.define_singleton_method(:params) do
+        ActionController::Parameters.new(id: ticket.id)
+      end
+
+      maintenance_tickets_controller.show
+
+      expect(maintenance_tickets_controller.instance_variable_get(:@ticket_action_partials))
+        .to eq(%w[priority_update technician_assignment])
+    end
+
+    it "does not assign role-specific action partials to reporters" do
+      ticket = create_ticket("Reported ticket", nil, status: "open", reporter_user: reporter)
+      signed_in_reporter = reporter
+      maintenance_tickets_controller.define_singleton_method(:current_user) { signed_in_reporter }
+      maintenance_tickets_controller.define_singleton_method(:params) do
+        ActionController::Parameters.new(id: ticket.id)
+      end
+
+      maintenance_tickets_controller.show
+
+      expect(maintenance_tickets_controller.instance_variable_get(:@ticket_action_partials)).to be_empty
     end
 
     it "allows the technician to open an in-progress ticket" do
