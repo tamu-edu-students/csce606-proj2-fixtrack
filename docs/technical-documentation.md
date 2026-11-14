@@ -63,6 +63,27 @@ bundle exec rspec
 Document migrations, seed data, and reset procedures here as the data model
 evolves.
 
+### User-field migration compatibility
+
+The company and role fields belong to `AddCompanyToUsers` and
+`AddRoleToUsers`, respectively. The initial Devise migration must not also
+create them. The later migrations accept those fields when already present
+in a database created with the older Devise migration, preserving existing
+accounts, password hashes, company assignments, and role values.
+
+`AddRoleToUsers` removes the old database default and permits null values to
+match the committed schema; the User model still validates roles and assigns
+Reporter to new users without an explicit role. Company membership remains
+optional after `AllowUsersWithoutCompany`.
+
+If setup previously stopped at a duplicate `company_id` or `role` field,
+update to the repaired migration files and rerun `bundle exec rails db:migrate`
+for the affected environment. Do not delete the database or manually mark
+migrations complete. Already-completed migrations are not rerun by this repair.
+
+Run `bundle exec ruby script/check_user_migrations.rb` to check both migration
+paths in temporary databases, including preservation of an existing account.
+
 ## Deployment
 
 > **TODO:** Document the production host, required environment variables,
