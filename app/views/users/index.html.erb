@@ -1,6 +1,11 @@
-<h1>Company Users</h1>
 
-<%= link_to "Create New User", new_user_path %>
+<h2>Company Users</h2>
+
+<p>View and manage users associated with your company.</p>
+
+<div class="actions">
+  <%= link_to "Create New User", new_user_path %>
+</div>
 
 <% if @users.any? %>
   <table>
@@ -8,7 +13,7 @@
       <tr>
         <th>Name</th>
         <th>Email</th>
-        <th>Role</th>
+        <th>User Type</th>
       </tr>
     </thead>
 
@@ -23,5 +28,5 @@
     </tbody>
   </table>
 <% else %>
-  <p>No users found.</p>
+  <p>No users have been created for your company yet.</p>
 <% end %>
