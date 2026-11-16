@@ -198,9 +198,23 @@ function scheduleAutoDismissal() {
   });
 }
 
+function formatLocalTimes() {
+  document.querySelectorAll("time[data-local-time]").forEach((time) => {
+    const date = new Date(time.dateTime);
+    if (Number.isNaN(date.getTime())) return;
+
+    const dateStyle = time.dataset.localTime === "long" ? "long" : "short";
+    time.textContent = new Intl.DateTimeFormat(undefined, {
+      dateStyle,
+      timeStyle: "short"
+    }).format(date);
+  });
+}
+
 function initializeRepairRecordPage() {
   restoreRepairDrafts();
   scheduleAutoDismissal();
+  formatLocalTimes();
 }
 
 document.addEventListener("input", (event) => {

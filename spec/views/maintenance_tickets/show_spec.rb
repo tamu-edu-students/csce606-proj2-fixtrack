@@ -49,6 +49,9 @@ RSpec.describe "maintenance_tickets/show", type: :view do
         "Created", "Last Updated"
       )
       expect(html.at_css("a[href='#{equipment_path(equipment)}']").text).to eq("PUMP-001")
+      expect(html.css("time[data-local-time='long']").map { |time| time["datetime"] }).to eq(
+        [ ticket.created_at.iso8601, ticket.updated_at.iso8601 ]
+      )
     end
 
     it "escapes ticket title and description instead of rendering markup" do
@@ -113,6 +116,7 @@ RSpec.describe "maintenance_tickets/show", type: :view do
       )
       expect(rows.first.at_css("details p").text).to eq("Replaced the motor.")
       expect(rows.first.at_css("time")["datetime"]).to eq(oldest_repair_record.created_at.iso8601)
+      expect(rows.first.at_css("time")["data-local-time"]).to eq("short")
       expect(rows.first.text).to include(
         oldest_repair_record.created_at.strftime("%m/%d/%y %I:%M %p")
       )
