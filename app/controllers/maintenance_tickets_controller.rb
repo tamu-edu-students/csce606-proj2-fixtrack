@@ -53,6 +53,23 @@ class MaintenanceTicketsController < ApplicationController
     render plain: "You are not allowed to update ticket priority.", status: :forbidden
   end
 
+  def update_assignment
+    @maintenance_ticket = MaintenanceTicket.find(params[:id])
+    authorize @maintenance_ticket, :update_assignment?
+
+    if @maintenance_ticket.update_assignment(assignment_params[:assigned_technician_id])
+      redirect_to maintenance_ticket_path(@maintenance_ticket),
+                  status: :see_other,
+                  flash: { technician_assignment: "Ticket technician assignment updated successfully." }
+    else
+      # Rebuild the detail page without show's status-normalization side effect.
+      prepare_ticket_details
+      render :show, status: :unprocessable_entity
+    end
+  rescue Pundit::NotAuthorizedError
+    render plain: "You are not allowed to change ticket assignments.", status: :forbidden
+  end
+
   def update_status
     ticket = MaintenanceTicket.find(params[:id])
     requested_status = params[:status]
@@ -106,6 +123,16 @@ class MaintenanceTicketsController < ApplicationController
   def priority_params
     # Require the nested priority payload; leave blank-value checks to the model.
     params.expect(maintenance_ticket: [ :priority ])
+  end
+
+  def assignment_params
+    permitted = params.expect(maintenance_ticket: [ :assigned_technician_id ])
+    # A missing field is malformed; an explicit nil or blank requests clearing.
+    unless permitted.key?(:assigned_technician_id)
+      raise ActionController::ParameterMissing, :assigned_technician_id
+    end
+
+    permitted
   end
 
   def normalize_status_for_repair_records(ticket)

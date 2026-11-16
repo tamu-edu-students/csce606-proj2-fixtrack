@@ -398,6 +398,22 @@ RSpec.describe "maintenance_tickets/show", type: :view do
     expect(message["data-auto-dismiss"]).to eq("5000")
   end
 
+  it "renders alert and priority feedback as separate messages on the detail page" do
+    view.define_singleton_method(:flash) do
+      { alert: "You are not allowed to set this status.", priority_update: "Ticket priority updated successfully." }
+    end
+    assign(:maintenance_ticket, ticket)
+    assign(:ticket_action_partials, [])
+
+    render template: "maintenance_tickets/show"
+    html = Nokogiri::HTML.fragment(rendered)
+
+    expect(html.at_css(".ticket-page-feedback > [role='alert']").text.strip)
+      .to eq("You are not allowed to set this status.")
+    expect(html.at_css(".ticket-page-feedback > [role='status']").text.strip)
+      .to eq("Ticket priority updated successfully.")
+  end
+
   it "renders shared details and the controller-selected action partials on the show page" do
     assign(:maintenance_ticket, ticket)
     assign(:ticket_action_partials, %w[priority_update technician_assignment])
