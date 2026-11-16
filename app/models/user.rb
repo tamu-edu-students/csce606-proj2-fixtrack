@@ -6,6 +6,9 @@ class User < ApplicationRecord
   validates :name, presence: true
   validates :role, inclusion: { in: %w[manager technician reporter] }
   belongs_to :company, optional: true
+  has_many :repair_records,
+           foreign_key: :technician_id,
+           class_name: "RepairRecord"
 
   before_validation :assign_default_role, on: :create
 

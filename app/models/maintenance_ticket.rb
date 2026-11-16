@@ -9,6 +9,8 @@ class MaintenanceTicket < ApplicationRecord
              class_name: "User",
              optional: true
 
+  has_many :repair_records
+
   validates :title, presence: true
   validates :description, presence: true
 
