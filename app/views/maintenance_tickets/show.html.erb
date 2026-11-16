@@ -1,9 +1,20 @@
 <div class="ticket-show-layout">
   <% repair_record_error_messages = @repair_record ? @repair_record.errors.full_messages : [] %>
-  <% if flash[:status_update].present? ||
+  <% ticket_error_messages = @maintenance_ticket.errors.full_messages %>
+  <% if flash[:priority_update].present? || flash[:status_update].present? ||
         flash[:repair_record_update].present? ||
-        repair_record_error_messages.any? %>
+        repair_record_error_messages.any? || ticket_error_messages.any? %>
     <div class="ticket-page-feedback">
+      <% if flash[:priority_update].present? %>
+        <p class="ticket-message ticket-message--success" role="status" data-auto-dismiss="5000">
+          <%= flash[:priority_update] %>
+        </p>
+      <% end %>
+      <% if ticket_error_messages.any? %>
+        <p class="ticket-message ticket-message--error" role="alert">
+          <%= ticket_error_messages.to_sentence %>
+        </p>
+      <% end %>
       <% if flash[:status_update].present? %>
         <p class="ticket-message ticket-message--success"
            role="status"

@@ -67,14 +67,16 @@
   min-width: 0;
 }
 
-.ticket-repair-panel label {
+.ticket-repair-panel label,
+.ticket-priority-update label {
   display: block;
   margin-bottom: 0.25rem;
 }
 
 .ticket-repair-panel textarea,
 .ticket-repair-panel input[type="text"],
-.ticket-status-update select {
+.ticket-status-update select,
+.ticket-priority-update select {
   box-sizing: border-box;
   width: 100%;
   margin-bottom: 1rem;
@@ -82,7 +84,8 @@
 }
 
 .ticket-repair-panel input[type="text"],
-.ticket-status-update select {
+.ticket-status-update select,
+.ticket-priority-update select {
   font-family: inherit;
   font-size: inherit;
   font-weight: normal;
