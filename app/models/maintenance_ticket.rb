@@ -7,6 +7,7 @@ class MaintenanceTicket < ApplicationRecord
     "technician" => %w[assigned in_progress ready_for_verification]
   }.freeze
   STATUSES_BEFORE_REPAIR = %w[submitted rejected assigned].freeze
+  ASSIGNABLE_STATUSES = %w[submitted assigned in_progress].freeze
 
   belongs_to :equipment
   belongs_to :reporter, class_name: "User"
@@ -15,6 +16,36 @@ class MaintenanceTicket < ApplicationRecord
              optional: true
 
   has_many :repair_records
+
+  def assignment_allowed?
+    ASSIGNABLE_STATUSES.include?(status)
+  end
+
+  def update_assignment(technician_id)
+    errors.clear
+    unless assignment_allowed?
+      errors.add(:status, "does not allow technician assignment changes")
+      return false
+    end
+
+    # Reject malformed IDs before Rails can cast them to nil (clearing) or another ID.
+    unless technician_id.nil? || technician_id == "" ||
+           ((technician_id.is_a?(String) || technician_id.is_a?(Integer)) &&
+            technician_id.to_s.match?(/\A[1-9][0-9]*\z/))
+      errors.add(:assigned_technician, "must be an existing technician")
+      return false
+    end
+
+    next_status = status
+    if technician_id.present? && status == "submitted"
+      next_status = "assigned"
+    elsif technician_id.blank? && status == "assigned" && !repair_records.exists?
+      next_status = "submitted"
+    end
+
+    # One save keeps assignment and status atomic; started work retains its status.
+    update(assigned_technician_id: technician_id, status: next_status)
+  end
 
   def self.status_options_for(user, ticket)
     return [] unless user
