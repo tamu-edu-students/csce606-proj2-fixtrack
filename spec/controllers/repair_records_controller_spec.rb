@@ -62,6 +62,9 @@ RSpec.describe RepairRecordsController do
       expect(ticket.reload.status).to eq("in_progress")
       expect(controller.flash[:status_update])
         .to eq("Moved status from Assigned to In progress")
+      expect(controller.flash[:status_update]).to eq(
+        "Moved status from Assigned to In progress"
+      )
     end
 
     it "allows multiple repair records on the same ticket" do
