@@ -173,8 +173,8 @@ function restoreRepairDrafts() {
   });
 }
 
-function scheduleRepairValidationDismissal() {
-  document.querySelectorAll("[data-repair-validation-errors]").forEach((message) => {
+function scheduleAutoDismissMessages() {
+  document.querySelectorAll("[data-auto-dismiss]").forEach((message) => {
     window.setTimeout(() => {
       message.hidden = true;
     }, Number(message.dataset.autoDismiss));
@@ -183,7 +183,7 @@ function scheduleRepairValidationDismissal() {
 
 function initializeRepairRecordPage() {
   restoreRepairDrafts();
-  scheduleRepairValidationDismissal();
+  scheduleAutoDismissMessages();
 }
 
 document.addEventListener("input", (event) => {
