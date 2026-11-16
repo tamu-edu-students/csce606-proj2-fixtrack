@@ -5,50 +5,54 @@
                ticket: @maintenance_ticket,
                order: @repair_records_order || "asc",
                active_repair_panel_id: @active_repair_panel_id %>
-    <%= render "maintenance_tickets/status_update", ticket: @maintenance_ticket %>
     <%= render "maintenance_tickets/report_another_problem" %>
   </main>
 
-  <% if @ticket_action_partials.include?("repair_record_form") %>
-    <aside class="ticket-repair-panel" aria-label="Repair record editor">
-      <section data-repair-panel="add"
-               aria-labelledby="repair-record-form-title"
-               <%= "hidden" if @active_repair_panel_id.present? %>>
-        <%= render "maintenance_tickets/repair_record_form",
-                   ticket: @maintenance_ticket,
-                   repair_record: @new_repair_record || @maintenance_ticket.repair_records.build,
-                   add_form: true %>
-      </section>
+  <aside class="ticket-side-panels" aria-label="Ticket actions">
+    <%= render "maintenance_tickets/status_update", ticket: @maintenance_ticket %>
 
-      <% if current_user.technician? &&
-            @maintenance_ticket.assigned_technician_id == current_user.id &&
-            %w[assigned in_progress].include?(@maintenance_ticket.status) %>
-        <% @maintenance_ticket.repair_records.order(created_at: :asc).each do |repair_record| %>
-          <% form_record = @repair_record&.id == repair_record.id ? @repair_record : repair_record %>
-          <section id="repair-record-panel-<%= repair_record.id %>"
-                   data-repair-panel="edit"
-                   aria-labelledby="repair-record-editor-title-<%= repair_record.id %>"
-                   <%= "hidden" unless @active_repair_panel_id == repair_record.id %>>
-            <%= render "maintenance_tickets/repair_record_form",
-                       ticket: @maintenance_ticket,
-                       repair_record: form_record,
-                       heading: "Repair Details",
-                       heading_id: "repair-record-editor-title-#{repair_record.id}",
-                       form_namespace: "repair-record-#{repair_record.id}",
-                       panel_edit: true,
-                       submit_label: "Save changes" %>
-            <button type="button"
-                    data-repair-panel-cancel
-                    class="ticket-repair-history__cancel">
-              Cancel
-            </button>
-          </section>
+    <% if @ticket_action_partials.include?("repair_record_form") %>
+      <section class="ticket-panel ticket-repair-panel" aria-label="Repair record editor">
+        <section data-repair-panel="add"
+                 aria-labelledby="repair-record-form-title"
+                 <%= "hidden" if @active_repair_panel_id.present? %>>
+          <%= render "maintenance_tickets/repair_record_form",
+                     ticket: @maintenance_ticket,
+                     repair_record: @new_repair_record || @maintenance_ticket.repair_records.build,
+                     add_form: true %>
+        </section>
+
+        <% if current_user.technician? &&
+              @maintenance_ticket.assigned_technician_id == current_user.id &&
+              %w[assigned in_progress].include?(@maintenance_ticket.status) %>
+          <% @maintenance_ticket.repair_records.order(created_at: :asc).each do |repair_record| %>
+            <% form_record = @repair_record&.id == repair_record.id ? @repair_record : repair_record %>
+            <section id="repair-record-panel-<%= repair_record.id %>"
+                     data-repair-panel="edit"
+                     data-repair-record-id="<%= repair_record.id %>"
+                     aria-labelledby="repair-record-editor-title-<%= repair_record.id %>"
+                     <%= "hidden" unless @active_repair_panel_id == repair_record.id %>>
+              <%= render "maintenance_tickets/repair_record_form",
+                         ticket: @maintenance_ticket,
+                         repair_record: form_record,
+                         heading: "Repair Details",
+                         heading_id: "repair-record-editor-title-#{repair_record.id}",
+                         form_namespace: "repair-record-#{repair_record.id}",
+                         panel_edit: true,
+                         submit_label: "Save changes" %>
+              <button type="button"
+                      data-repair-panel-cancel
+                      class="ticket-repair-history__cancel">
+                Cancel
+              </button>
+            </section>
+          <% end %>
         <% end %>
-      <% end %>
-    </aside>
-  <% else %>
-    <% @ticket_action_partials.each do |partial| %>
+      </section>
+    <% end %>
+
+    <% @ticket_action_partials.reject { |partial| partial == "repair_record_form" }.each do |partial| %>
       <%= render "maintenance_tickets/#{partial}", ticket: @maintenance_ticket %>
     <% end %>
-  <% end %>
+  </aside>
 </div>

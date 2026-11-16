@@ -1,4 +1,4 @@
-<section class="ticket-repair-history" aria-labelledby="ticket-repair-history-title">
+<section class="ticket-panel ticket-repair-history" aria-labelledby="ticket-repair-history-title">
   <h2 id="ticket-repair-history-title">Repairs</h2>
 
   <% sort_order = order == "desc" ? :desc : :asc %>
@@ -43,12 +43,20 @@
       </thead>
       <tbody id="ticket-repair-records">
         <% repair_records.each do |repair_record| %>
-          <tr>
+          <% editing_repair_record = active_repair_panel_id == repair_record.id %>
+          <% row_attributes = { data: { repair_record_row: repair_record.id } } %>
+          <% row_attributes[:aria] = { current: "true" } if editing_repair_record %>
+          <tr <%= tag.attributes(row_attributes) %>>
             <td>
               <details class="ticket-repair-history__notes">
                 <summary class="ticket-repair-history__summary"><%= repair_record.title %></summary>
                 <%= simple_format(repair_record.description) %>
               </details>
+              <span class="ticket-repair-history__editing-indicator"
+                    data-repair-editing-indicator="true"
+                    <%= "hidden" unless editing_repair_record %>>
+                Editing
+              </span>
             </td>
             <td>
               <time datetime="<%= repair_record.created_at.iso8601 %>">
@@ -98,6 +106,7 @@
                                 "#",
                                 data: { repair_delete_cancel: true },
                                 class: "ticket-repair-history__action" %>
+                  </div>
                 </div>
               </td>
             <% end %>

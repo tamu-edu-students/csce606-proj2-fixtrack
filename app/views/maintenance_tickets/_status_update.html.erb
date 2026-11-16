@@ -1,6 +1,6 @@
 <% status_options = MaintenanceTicket.status_options_for(current_user, ticket) %>
 
-<section class="ticket-status-update" aria-labelledby="ticket-status-update-title">
+<section class="ticket-panel ticket-status-update" aria-labelledby="ticket-status-update-title">
   <h2 id="ticket-status-update-title">Change status</h2>
 
   <% if status_options.any? %>

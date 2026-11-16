@@ -59,6 +59,23 @@ function showRepairPanel(container, targetPanel) {
       String(link.getAttribute("aria-controls") === targetPanel.id)
     );
   });
+
+  const history = container.closest(".ticket-show-layout")?.querySelector(
+    ".ticket-repair-history"
+  );
+  history?.querySelectorAll("[data-repair-record-row]").forEach((row) => {
+    const isEditing =
+      row.dataset.repairRecordRow === targetPanel.dataset.repairRecordId;
+    const indicator = row.querySelector("[data-repair-editing-indicator]");
+
+    if (isEditing) {
+      row.setAttribute("aria-current", "true");
+    } else {
+      row.removeAttribute("aria-current");
+    }
+
+    indicator.hidden = !isEditing;
+  });
 }
 
 document.addEventListener("click", (event) => {

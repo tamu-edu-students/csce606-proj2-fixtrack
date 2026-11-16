@@ -19,16 +19,31 @@
 }
 
 .ticket-show-content {
+  display: grid;
+  align-content: start;
+  gap: 1.5rem;
   min-width: 0;
 }
 
-.ticket-repair-panel {
+.ticket-side-panels {
+  display: grid;
+  align-content: start;
+  gap: 1.5rem;
   position: sticky;
   top: 1rem;
   align-self: start;
+  min-width: 0;
+}
+
+.ticket-panel {
   padding: 1rem;
   border: 1px solid #d1d5db;
   border-radius: 0.5rem;
+  background: #fff;
+}
+
+.ticket-repair-panel {
+  min-width: 0;
 }
 
 .ticket-repair-panel label {
@@ -51,7 +66,7 @@
 }
 
 .ticket-repair-history {
-  margin: 1.5rem 0;
+  margin: 0;
 }
 
 .ticket-repair-history__table {
@@ -99,6 +114,18 @@
 
 .ticket-repair-history__notes p {
   overflow-wrap: anywhere;
+}
+
+.ticket-repair-history__table tbody tr[aria-current="true"] {
+  background: #eef6ff;
+}
+
+.ticket-repair-history__editing-indicator {
+  display: inline-block;
+  margin: 0.25rem 0 0 0.5rem;
+  color: #0759a5;
+  font-size: 0.875em;
+  font-weight: 600;
 }
 
 .ticket-repair-history__summary:hover {
@@ -170,12 +197,6 @@
   display: none;
 }
 
-.ticket-repair-panel [data-repair-panel="edit"] {
-  padding: 1rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-}
-
 .ticket-repair-history__cancel {
   margin-top: 0.75rem;
   padding: 0.5rem 0.75rem;
@@ -187,8 +208,7 @@
     grid-template-columns: 1fr;
   }
 
-  .ticket-repair-panel {
-    align-self: auto;
+  .ticket-side-panels {
     position: static;
   }
 }

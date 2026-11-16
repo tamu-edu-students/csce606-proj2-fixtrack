@@ -149,7 +149,29 @@ RSpec.describe "maintenance_tickets/show", type: :view do
       expect(html.css("[data-repair-delete-confirmation]").map(&:text).join)
         .to include("Delete this repair record?", "Confirm", "Cancel")
       expect(html.css("[data-repair-delete-confirmation] form").size).to eq(2)
+      expect(html.css("[data-repair-editing-indicator][hidden]").size).to eq(2)
       expect(html.css(".ticket-repair-history__actions button")).to be_empty
+    end
+
+    it "marks the repair row whose details panel is active" do
+      ticket.update!(assigned_technician: technician)
+      signed_in_user = technician
+      view.define_singleton_method(:current_user) { signed_in_user }
+
+      render partial: "maintenance_tickets/repair_records",
+             locals: {
+               ticket: ticket,
+               order: "asc",
+               active_repair_panel_id: oldest_repair_record.id
+             }
+      html = Nokogiri::HTML.fragment(rendered)
+      editing_row = html.at_css("tr[data-repair-record-row='#{oldest_repair_record.id}']")
+      other_row = html.at_css("tr[data-repair-record-row='#{newest_repair_record.id}']")
+
+      expect(editing_row["aria-current"]).to eq("true")
+      expect(editing_row.at_css("[data-repair-editing-indicator]")["hidden"]).to be_nil
+      expect(other_row["aria-current"]).to be_nil
+      expect(other_row.at_css("[data-repair-editing-indicator]")["hidden"]).to eq("")
     end
 
     it "hides edit and delete controls after the ticket leaves editable statuses" do
@@ -190,6 +212,11 @@ RSpec.describe "maintenance_tickets/show", type: :view do
       expect(
         html.at_css('form[data-repair-add-form] textarea[name="repair_record[description]"]')["required"]
       ).to be_nil
+      expect(html.css(".ticket-show-content > .ticket-details.ticket-panel").size).to eq(1)
+      expect(html.css(".ticket-show-content > .ticket-repair-history.ticket-panel").size).to eq(1)
+      expect(html.css(".ticket-side-panels > .ticket-panel").map do |panel|
+        panel["class"].split.last
+      end).to eq(%w[ticket-status-update ticket-repair-panel])
     end
 
     it "marks repair validation errors to dismiss after five seconds" do
