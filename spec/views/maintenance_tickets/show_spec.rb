@@ -37,21 +37,41 @@ RSpec.describe "maintenance_tickets/show", type: :view do
       render partial: "maintenance_tickets/shared_information", locals: { ticket: ticket }
       html = Nokogiri::HTML.fragment(rendered)
 
-      expect(html.at_css("h1").text).to eq("Pump overheats")
-      expect(html.at_css("dl").text).to include(
-        "Ticket ID", ticket.id.to_s,
-        "Equipment", "Water Pump",
-        "Equipment Identifier", "PUMP-001",
+      expect(html.at_css("h1").text).to eq("##{ticket.id} / Pump overheats")
+      expect(html.at_css(".ticket-details").text).to include(
         "Issue Description", "The pump stops during operation.",
-        "Priority", "High",
-        "Status", "In progress",
-        "Reported By", "Jamie Reporter",
-        "Created", "Last Updated"
+        "Reported By:", "Jamie Reporter",
+        "Created:", "Last Updated"
       )
-      expect(html.at_css("a[href='#{equipment_path(equipment)}']").text).to eq("PUMP-001")
+      expect(html.at_css(".ticket-details").text).not_to include("Status")
+      expect(html.at_css(".ticket-details__header > .ticket-details__priority")["aria-label"])
+        .to eq("Priority: High")
+      expect(html.at_css(".ticket-details__priority").text.strip).to eq("High")
+      expect(html.at_css(".ticket-details__issue + .ticket-details__last-updated"))
+        .to be_present
       expect(html.css("time[data-local-time='long']").map { |time| time["datetime"] }).to eq(
         [ ticket.created_at.iso8601, ticket.updated_at.iso8601 ]
       )
+      expect(html.css(".ticket-details__metadata-row").map do |row|
+        row.css("dt").map(&:text)
+      end).to eq(
+        [ [ "Reported By:", "Created:" ] ]
+      )
+    end
+
+    it "renders equipment details in a separate three-column panel without a title" do
+      render partial: "maintenance_tickets/equipment_information", locals: { ticket: ticket }
+      html = Nokogiri::HTML.fragment(rendered)
+      panel = html.at_css(".ticket-equipment-panel")
+
+      expect(panel.css("h1, h2, h3")).to be_empty
+      expect(panel.css("dt").map(&:text)).to eq(
+        [ "Equipment", "Equipment Identifier", "Location" ]
+      )
+      expect(panel.css("dd").map(&:text)).to eq(
+        [ "Water Pump", "PUMP-001", "Building A" ]
+      )
+      expect(panel.at_css("a[href='#{equipment_path(equipment)}']").text).to eq("PUMP-001")
     end
 
     it "escapes ticket title and description instead of rendering markup" do
@@ -103,7 +123,8 @@ RSpec.describe "maintenance_tickets/show", type: :view do
       table = html.at_css("table.ticket-repair-history__table")
       rows = table.css("tbody tr")
 
-      expect(html.at_css("h2").text).to eq("Repairs")
+      expect(html.at_css(".ticket-repair-history h2")).to be_nil
+      expect(html.at_css(".ticket-repair-history")["aria-label"]).to eq("Repair history")
       expect(html.css("ul, ol")).to be_empty
       expect(table.css("th").map { |header| header.text.gsub(/\s+/, " ").strip }).to eq(
         [ "Repair Expand all", "Recorded at ↑" ]
@@ -279,10 +300,68 @@ RSpec.describe "maintenance_tickets/show", type: :view do
       html = Nokogiri::HTML.fragment(rendered)
       panel = html.at_css(".ticket-status-update")
 
+      expect(panel.at_css("h2").text).to eq("Status")
       expect(panel.at_css("label")).to be_nil
       expect(panel.at_css("select[aria-label='Choose a status']")).to be_present
       expect(panel.at_css("[role='status'][data-auto-dismiss='5000']").text.strip)
         .to eq("Moved status from Assigned to In progress")
+    end
+
+    it "shows the current status to a reporter who did not report the ticket" do
+      ticket.update!(
+        reporter: User.create!(
+          name: "Another Reporter",
+          email: "another-reporter@example.com",
+          password: "password",
+          role: "reporter"
+        )
+      )
+      signed_in_user = reporter
+      view.define_singleton_method(:current_user) { signed_in_user }
+
+      render partial: "maintenance_tickets/status_update", locals: { ticket: ticket }
+      panel = Nokogiri::HTML.fragment(rendered).at_css(".ticket-status-update")
+
+      expect(panel.at_css("select")).to be_nil
+      expect(panel.text).not_to include("You can only update the status of tickets you reported.")
+      expect(panel.at_css(".ticket-status-update__current-status").text.strip)
+        .to eq("In progress")
+    end
+
+    it "shows a permission error after a reporter attempts to update someone else's ticket" do
+      ticket.update!(
+        reporter: User.create!(
+          name: "Another Reporter",
+          email: "another-reporter@example.com",
+          password: "password",
+          role: "reporter"
+        )
+      )
+      signed_in_user = reporter
+      view.define_singleton_method(:current_user) { signed_in_user }
+      view.define_singleton_method(:flash) do
+        { alert: "You can only update the status of tickets you reported." }
+      end
+
+      render partial: "maintenance_tickets/status_update", locals: { ticket: ticket }
+      error = Nokogiri::HTML.fragment(rendered)
+        .at_css(".ticket-status-update [role='alert']")
+
+      expect(error.text.strip)
+        .to eq("You can only update the status of tickets you reported.")
+      expect(Nokogiri::HTML.fragment(rendered)
+        .at_css(".ticket-status-update__current-status").text.strip).to eq("In progress")
+    end
+
+    it "keeps status options for reporters who reported the ticket" do
+      signed_in_user = reporter
+      view.define_singleton_method(:current_user) { signed_in_user }
+
+      render partial: "maintenance_tickets/status_update", locals: { ticket: ticket }
+      panel = Nokogiri::HTML.fragment(rendered).at_css(".ticket-status-update")
+
+      expect(panel.at_css("select[aria-label='Choose a status']")).to be_present
+      expect(panel.at_css(".ticket-status-update__current-status")).to be_nil
     end
 
     it "shows repair update confirmation inside the repair panel" do
@@ -335,7 +414,9 @@ RSpec.describe "maintenance_tickets/show", type: :view do
       "maintenance_tickets/technician_assignment",
       ticket: ticket
     )
-    expect(html.at_css("#ticket-details-title").text).to eq("Pump overheats")
+    expect(html.at_css("#ticket-details-title").text).to eq("##{ticket.id} / Pump overheats")
+    expect(html.at_css(".ticket-equipment-panel").previous_element)
+      .to eq(html.at_css(".ticket-details"))
     expect(html.at_css("a[href='#{new_maintenance_ticket_path}']").text).to eq("Report Another Problem")
     expect(html.text).to include("The pump stops during operation.", "Jamie Reporter")
   end

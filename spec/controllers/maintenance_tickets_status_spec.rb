@@ -222,7 +222,7 @@ RSpec.describe MaintenanceTicketsController do
       expect(ticket).not_to receive(:update)
       expect(controller).to receive(:redirect_to).with(
         "/issues/12",
-        alert: "You are not allowed to set this status."
+        alert: "You can only update the status of tickets you reported."
       )
 
       update_status_as(reporter, "closed")

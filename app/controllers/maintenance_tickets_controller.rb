@@ -58,8 +58,14 @@ class MaintenanceTicketsController < ApplicationController
     requested_status = params[:status]
 
     unless status_options_for(current_user, ticket).include?(requested_status)
+      alert_message =
+        if current_user&.role == "reporter" && ticket.reporter_id != current_user.id
+          "You can only update the status of tickets you reported."
+        else
+          "You are not allowed to set this status."
+        end
       redirect_to maintenance_ticket_path(ticket),
-                  alert: "You are not allowed to set this status."
+                  alert: alert_message
       return
     end
 

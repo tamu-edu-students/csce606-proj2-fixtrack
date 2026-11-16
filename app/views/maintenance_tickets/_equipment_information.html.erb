@@ -1,0 +1,16 @@
+<section class="ticket-panel ticket-equipment-panel" aria-label="Equipment details">
+  <dl class="ticket-equipment-panel__list">
+    <div>
+      <dt>Equipment</dt>
+      <dd><%= ticket.equipment.name %></dd>
+    </div>
+    <div>
+      <dt>Equipment Identifier</dt>
+      <dd><%= link_to ticket.equipment.asset_identifier, equipment_path(ticket.equipment) %></dd>
+    </div>
+    <div>
+      <dt>Location</dt>
+      <dd><%= ticket.equipment.location %></dd>
+    </div>
+  </dl>
+</section>

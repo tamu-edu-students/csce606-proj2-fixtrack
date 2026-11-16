@@ -1,6 +1,4 @@
-<section class="ticket-panel ticket-repair-history" aria-labelledby="ticket-repair-history-title">
-  <h2 id="ticket-repair-history-title">Repairs</h2>
-
+<section class="ticket-panel ticket-repair-history" aria-label="Repair history">
   <% sort_order = order == "desc" ? :desc : :asc %>
   <% next_order = sort_order == :asc ? "desc" : "asc" %>
   <% active_repair_panel_id = local_assigns[:active_repair_panel_id] %>
