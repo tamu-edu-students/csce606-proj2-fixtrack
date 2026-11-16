@@ -2,7 +2,7 @@ class MaintenanceTicketsController < ApplicationController
   TECHNICIAN_VISIBLE_STATUSES = %w[assigned in_progress].freeze
   STATUSES_BEFORE_REPAIR = MaintenanceTicket::STATUSES_BEFORE_REPAIR
   TICKET_ACTION_PARTIALS = {
-    "manager" => %w[priority_update technician_assignment].freeze,
+    "manager" => %w[technician_assignment].freeze,
     "technician" => %w[repair_record_form].freeze
   }.freeze
 
@@ -33,12 +33,24 @@ class MaintenanceTicketsController < ApplicationController
   def show
     @maintenance_ticket = show_scope.find(params[:id])
     normalize_status_for_repair_records(@maintenance_ticket)
-    @repair_records_order = params[:repair_records_order] == "desc" ? "desc" : "asc"
-    @ticket_action_partials = TICKET_ACTION_PARTIALS.fetch(current_user.role, [])
-    if current_user.technician? &&
-       @maintenance_ticket.assigned_technician_id != current_user.id
-      @ticket_action_partials = []
+    prepare_ticket_details
+  end
+
+  def update_priority
+    @maintenance_ticket = MaintenanceTicket.find(params[:id])
+    authorize @maintenance_ticket, :update_priority?
+
+    if @maintenance_ticket.update(priority_params)
+      redirect_to maintenance_ticket_path(@maintenance_ticket),
+                  status: :see_other,
+                  flash: { priority_update: "Ticket priority updated successfully." }
+    else
+      # Rebuild the detail page without show's status-normalization side effect.
+      prepare_ticket_details
+      render :show, status: :unprocessable_entity
     end
+  rescue Pundit::NotAuthorizedError
+    render plain: "You are not allowed to update ticket priority.", status: :forbidden
   end
 
   def update_status
@@ -79,6 +91,22 @@ class MaintenanceTicketsController < ApplicationController
   end
 
   private
+
+  def prepare_ticket_details
+    @repair_records_order = params[:repair_records_order] == "desc" ? "desc" : "asc"
+    @ticket_action_partials = TICKET_ACTION_PARTIALS.fetch(current_user.role, []).dup
+    # Priority access includes Admins, so use the same policy as the endpoint.
+    @ticket_action_partials.unshift("priority_update") if policy(@maintenance_ticket).update_priority?
+    if current_user.technician? &&
+       @maintenance_ticket.assigned_technician_id != current_user.id
+      @ticket_action_partials = []
+    end
+  end
+
+  def priority_params
+    # Require the nested priority payload; leave blank-value checks to the model.
+    params.expect(maintenance_ticket: [ :priority ])
+  end
 
   def normalize_status_for_repair_records(ticket)
     return unless ticket.repair_records.exists?
