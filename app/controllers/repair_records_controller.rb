@@ -18,7 +18,14 @@ class RepairRecordsController < ApplicationController
     @maintenance_ticket.with_lock do
       previous_status = @maintenance_ticket.status
       if @repair_record.save && @maintenance_ticket.status != "in_progress"
+    status_update_message = nil
+    @maintenance_ticket.with_lock do
+      previous_status = @maintenance_ticket.status
+      if @repair_record.save && previous_status != "in_progress"
         @maintenance_ticket.update!(status: "in_progress")
+        if previous_status == "assigned"
+          status_update_message = "Moved status from Assigned to In progress"
+        end
       end
     end
 
@@ -28,6 +35,9 @@ class RepairRecordsController < ApplicationController
                     flash: {
                       status_update: "Moved status from #{previous_status.humanize} to #{@maintenance_ticket.status.humanize}"
                     }
+      if status_update_message
+        redirect_to maintenance_ticket_path(@maintenance_ticket),
+                    flash: { status_update: status_update_message }
       else
         redirect_to maintenance_ticket_path(@maintenance_ticket),
                     notice: "Repair record added."
@@ -53,7 +63,7 @@ class RepairRecordsController < ApplicationController
 
     if @repair_record.update(repair_record_params)
       redirect_to maintenance_ticket_path(@maintenance_ticket),
-                  notice: "Repair record updated."
+                  flash: { repair_record_update: "Repair record updated." }
     elsif params[:panel_edit] == "true"
       @ticket_action_partials = [ "repair_record_form" ]
       @new_repair_record = @maintenance_ticket.repair_records.build

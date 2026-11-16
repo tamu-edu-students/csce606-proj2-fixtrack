@@ -121,6 +121,7 @@ RSpec.describe MaintenanceTicketsController do
         "/issues/12",
         flash: { status_update: "Moved status from Submitted to Assigned" }
       )
+      expect(controller).to receive(:redirect_to).with("/issues/12")
 
       update_status_as(manager, "assigned")
     end

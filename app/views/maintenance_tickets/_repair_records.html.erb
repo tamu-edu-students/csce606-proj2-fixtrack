@@ -3,8 +3,11 @@
 
   <% sort_order = order == "desc" ? :desc : :asc %>
   <% next_order = sort_order == :asc ? "desc" : "asc" %>
-  <% repair_records = ticket.repair_records.order(created_at: sort_order).to_a %>
   <% active_repair_panel_id = local_assigns[:active_repair_panel_id] %>
+  <% all_repair_records = ticket.repair_records.order(created_at: :asc, id: :asc).to_a %>
+  <% latest_repair_record_ids = all_repair_records.last(5).map(&:id) %>
+  <% hidden_repair_record_ids = all_repair_records.map(&:id) - latest_repair_record_ids - [active_repair_panel_id] %>
+  <% repair_records = sort_order == :asc ? all_repair_records : all_repair_records.reverse %>
   <% can_manage_repairs = current_user&.technician? &&
                            ticket.assigned_technician_id == current_user.id &&
                            %w[assigned in_progress].include?(ticket.status) %>
@@ -45,6 +48,10 @@
         <% repair_records.each do |repair_record| %>
           <% editing_repair_record = active_repair_panel_id == repair_record.id %>
           <% row_attributes = { data: { repair_record_row: repair_record.id } } %>
+          <% if hidden_repair_record_ids.include?(repair_record.id) %>
+            <% row_attributes[:hidden] = true %>
+            <% row_attributes[:data][:repair_record_overflow_row] = true %>
+          <% end %>
           <% row_attributes[:aria] = { current: "true" } if editing_repair_record %>
           <tr <%= tag.attributes(row_attributes) %>>
             <td>
@@ -59,7 +66,7 @@
               </span>
             </td>
             <td>
-              <time datetime="<%= repair_record.created_at.iso8601 %>">
+              <time datetime="<%= repair_record.created_at.iso8601 %>" data-local-time="short">
                 <%= repair_record.created_at.strftime("%m/%d/%y %I:%M %p") %>
               </time>
             </td>
@@ -114,6 +121,15 @@
         <% end %>
       </tbody>
     </table>
+    <% if hidden_repair_record_ids.any? %>
+      <button type="button"
+              class="ticket-repair-history__show-all"
+              data-repair-records-show-all
+              aria-controls="ticket-repair-records"
+              aria-expanded="false">
+        Show all repair records
+      </button>
+    <% end %>
   <% else %>
     <p>No repair records have been added.</p>
   <% end %>
