@@ -140,6 +140,45 @@ RSpec.describe "Ticket priority updates", type: :request do
       expect(response).to have_http_status(:not_found)
     end
 
+    it "updates the correct manager queue row and reorders after promotion and demotion" do
+      ticket.update!(created_at: 2.hours.ago)
+      high_ticket = MaintenanceTicket.create!(
+        title: "Existing high priority", description: "Needs attention", priority: "high",
+        status: "submitted", equipment: equipment, reporter: reporter, created_at: 1.hour.ago
+      )
+      low_ticket = MaintenanceTicket.create!(
+        title: "Existing low priority", description: "Can wait", priority: "low",
+        status: "in_progress", equipment: equipment, reporter: reporter, created_at: 3.hours.ago
+      )
+
+      get manager_maintenance_tickets_path(sort: "priority")
+
+      expect(response).to have_http_status(:ok)
+      rows = Nokogiri::HTML(response.body).css(".ticket-queue tbody tr")
+      expect(rows.map { |row| row.at_css("th a")["href"] }).to eq(
+        [ high_ticket, ticket, low_ticket ].map { |record| maintenance_ticket_path(record) }
+      )
+
+      # Existing queue ordering uses creation time to break equal-priority ties.
+      { "high" => [ ticket, high_ticket, low_ticket ],
+        "low" => [ high_ticket, low_ticket, ticket ] }.each do |priority, expected_order|
+        update_priority(priority: priority)
+
+        expect(response).to have_http_status(:see_other)
+        expect(ticket.reload.priority).to eq(priority)
+
+        get manager_maintenance_tickets_path(sort: "priority")
+
+        expect(response).to have_http_status(:ok)
+        rows = Nokogiri::HTML(response.body).css(".ticket-queue tbody tr")
+        expect(rows.map { |row| row.at_css("th a")["href"] })
+          .to eq(expected_order.map { |record| maintenance_ticket_path(record) })
+        rows.zip(expected_order).each do |row, record|
+          expect(row.css("td")[2].text).to eq(record.priority.humanize)
+        end
+      end
+    end
+
     %w[low medium high].each do |priority|
       it "shows the priority control with #{priority} preselected" do
         ticket.update!(priority: priority)
