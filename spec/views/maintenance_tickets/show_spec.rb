@@ -132,6 +132,35 @@ RSpec.describe "maintenance_tickets/show", type: :view do
       expect(table.at_css("th a")["href"]).to include("repair_records_order=asc")
     end
 
+    it "shows the five latest records and offers to reveal older records" do
+      4.times do |index|
+        ticket.repair_records.create!(
+          technician: technician,
+          title: "Earlier repair #{index + 1}",
+          description: "Older repair notes.",
+          created_at: Time.zone.parse("2026-11-#{11 + index} 09:00")
+        )
+      end
+
+      render partial: "maintenance_tickets/repair_records",
+             locals: { ticket: ticket, order: "asc" }
+      html = Nokogiri::HTML.fragment(rendered)
+      table = html.at_css("table.ticket-repair-history__table")
+
+      expect(table.css("tbody tr:not([hidden])").map { |row| row.at_css("summary").text }).to eq(
+        [ "Earlier repair 2", "Earlier repair 3", "Earlier repair 4", "Initial repair", "Follow-up repair" ]
+      )
+      expect(table.css("tbody tr[hidden]").map { |row| row.at_css("summary").text })
+        .to eq([ "Earlier repair 1" ])
+      expect(html.at_css("[data-repair-records-show-all]").text.strip)
+        .to eq("Show all repair records")
+      expect(html.at_css("[data-repair-records-show-all]")["aria-controls"])
+        .to eq("ticket-repair-records")
+      expect(html.at_css("[data-repair-records-show-all]")["aria-expanded"])
+        .to eq("false")
+      expect(table.css("tbody tr[data-repair-record-overflow-row][hidden]").size).to eq(1)
+    end
+
     it "shows edit and delete controls only to the assigned technician" do
       ticket.update!(assigned_technician: technician)
       signed_in_user = technician

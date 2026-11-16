@@ -168,6 +168,20 @@
   background: #f0f7ff;
 }
 
+.ticket-repair-history__show-all {
+  margin-top: 0.75rem;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid #0759a5;
+  border-radius: 0.25rem;
+  background: #fff;
+  color: #0759a5;
+  cursor: pointer;
+}
+
+.ticket-repair-history__show-all:hover {
+  background: #f0f7ff;
+}
+
 .ticket-repair-history__action-links,
 .ticket-repair-history__delete-confirmation {
   display: flex;

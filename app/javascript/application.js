@@ -12,6 +12,23 @@ function syncRepairRecordsToggle(section) {
 document.addEventListener("click", (event) => {
   if (!(event.target instanceof Element)) return;
 
+  const showAllButton = event.target.closest("[data-repair-records-show-all]");
+  if (showAllButton) {
+    const section = showAllButton.closest(".ticket-repair-history");
+    if (!section) return;
+
+    const showAll = showAllButton.getAttribute("aria-expanded") !== "true";
+    section.querySelectorAll("[data-repair-record-overflow-row]").forEach((row) => {
+      row.hidden = !showAll;
+    });
+    showAllButton.setAttribute("aria-expanded", String(showAll));
+    showAllButton.textContent = showAll
+      ? "Show only the 5 latest repair records"
+      : "Show all repair records";
+    syncRepairRecordsToggle(section);
+    return;
+  }
+
   const button = event.target.closest("[data-repair-records-toggle]");
   if (!button) return;
 
