@@ -34,7 +34,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_16_000000) do
     t.string "title", null: false
     t.text "description", null: false
     t.string "priority", null: false
-    t.string "status", default: "open", null: false
+    t.string "status", default: "submitted", null: false
     t.integer "equipment_id", null: false
     t.integer "reporter_id", null: false
     t.integer "assigned_technician_id"

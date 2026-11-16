@@ -8,3 +8,46 @@
  *
  * Consider organizing styles into separate files for maintainability.
  */
+
+.ticket-show-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
+  gap: 1.5rem;
+  max-width: 80rem;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.ticket-show-content {
+  min-width: 0;
+}
+
+.ticket-repair-panel {
+  align-self: end;
+  padding: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+}
+
+.ticket-repair-panel label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.ticket-repair-panel textarea,
+.ticket-repair-panel input[type="datetime-local"] {
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+}
+
+@media (max-width: 48rem) {
+  .ticket-show-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .ticket-repair-panel {
+    align-self: auto;
+  }
+}

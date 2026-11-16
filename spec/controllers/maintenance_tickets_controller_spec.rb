@@ -115,6 +115,7 @@ RSpec.describe MaintenanceTicketsController do
       maintenance_tickets_controller.show
 
       expect(maintenance_tickets_controller.instance_variable_get(:@maintenance_ticket)).to eq(ticket)
+      expect(maintenance_tickets_controller.instance_variable_get(:@ticket_action_partials)).to be_empty
     end
 
     it "does not allow the technician to open another technician's ticket" do

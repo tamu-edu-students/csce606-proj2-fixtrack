@@ -37,6 +37,10 @@ class MaintenanceTicketsController < ApplicationController
   def show
     @maintenance_ticket = show_scope.find(params[:id])
     @ticket_action_partials = TICKET_ACTION_PARTIALS.fetch(current_user.role, [])
+    if current_user.technician? &&
+       @maintenance_ticket.assigned_technician_id != current_user.id
+      @ticket_action_partials = []
+    end
   end
 
   def update_status

@@ -1,2 +1,26 @@
-<%# Placeholder for the technician repair record form. %>
-<%# Planning to create the repair record model. After this branch is sorted out, the repair history will be worked on. %>
+<h2 id="repair-record-form-title">Add a repair record</h2>
+
+<%= form_with model: [ticket, repair_record] do |form| %>
+  <% if repair_record.errors.any? %>
+    <div role="alert">
+      <p>Repair record could not be saved:</p>
+      <ul>
+        <% repair_record.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :description, "Repair notes" %>
+    <%= form.text_area :description, rows: 4, required: true %>
+  </div>
+
+  <div>
+    <%= form.label :completed_at, "Completion date and time" %>
+    <%= form.datetime_local_field :completed_at, required: true %>
+  </div>
+
+  <%= form.submit "Add repair record" %>
+<% end %>

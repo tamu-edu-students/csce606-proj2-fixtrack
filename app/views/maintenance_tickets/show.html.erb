@@ -1,6 +1,19 @@
-<%= render "shared_information", ticket: @maintenance_ticket %>
-<% @ticket_action_partials.each do |partial| %>
-  <%= render partial, ticket: @maintenance_ticket %>
-<% end %>
-<%= render "status_update", ticket: @maintenance_ticket %>
-<%= render "report_another_problem" %>
+<div class="ticket-show-layout">
+  <main class="ticket-show-content">
+    <%= render "shared_information", ticket: @maintenance_ticket %>
+    <%= render "status_update", ticket: @maintenance_ticket %>
+    <%= render "report_another_problem" %>
+  </main>
+
+  <% if @ticket_action_partials.include?("repair_record_form") %>
+    <aside class="ticket-repair-panel" aria-labelledby="repair-record-form-title">
+      <%= render "repair_record_form",
+                 ticket: @maintenance_ticket,
+                 repair_record: @repair_record || @maintenance_ticket.repair_records.build %>
+    </aside>
+  <% else %>
+    <% @ticket_action_partials.each do |partial| %>
+      <%= render partial, ticket: @maintenance_ticket %>
+    <% end %>
+  <% end %>
+</div>
