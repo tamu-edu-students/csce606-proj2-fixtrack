@@ -60,6 +60,8 @@ RSpec.describe RepairRecordsController do
       expect(repair_record.title).to eq("Motor replacement")
       expect(repair_record.description).to eq("Replaced the motor")
       expect(ticket.reload.status).to eq("in_progress")
+      expect(controller.flash[:status_update])
+        .to eq("Moved status from Assigned to In progress")
       expect(controller.flash[:status_update]).to eq(
         "Moved status from Assigned to In progress"
       )
@@ -79,6 +81,7 @@ RSpec.describe RepairRecordsController do
 
       expect { controller.create }.to change { ticket.repair_records.count }.by(1)
       expect(ticket.reload.status).to eq("in_progress")
+      expect(controller.flash[:status_update]).to be_nil
     end
 
     it "renders validation errors when the repair title is missing" do

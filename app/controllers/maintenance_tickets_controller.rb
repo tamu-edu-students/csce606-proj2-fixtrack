@@ -52,7 +52,17 @@ class MaintenanceTicketsController < ApplicationController
       return
     end
 
+    previous_status = ticket.status
+    if requested_status == previous_status
+      redirect_to maintenance_ticket_path(ticket)
+      return
+    end
+
     if ticket.update(status: requested_status)
+      redirect_to maintenance_ticket_path(ticket),
+                  flash: {
+                    status_update: "Moved status from #{previous_status.humanize} to #{requested_status.humanize}"
+                  }
       if previous_status == requested_status
         redirect_to maintenance_ticket_path(ticket)
       else

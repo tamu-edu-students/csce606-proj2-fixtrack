@@ -14,6 +14,10 @@ class RepairRecordsController < ApplicationController
     @repair_record = @maintenance_ticket.repair_records.build(repair_record_params)
     @repair_record.technician = current_user
 
+    previous_status = nil
+    @maintenance_ticket.with_lock do
+      previous_status = @maintenance_ticket.status
+      if @repair_record.save && @maintenance_ticket.status != "in_progress"
     status_update_message = nil
     @maintenance_ticket.with_lock do
       previous_status = @maintenance_ticket.status
@@ -26,6 +30,11 @@ class RepairRecordsController < ApplicationController
     end
 
     if @repair_record.persisted?
+      if previous_status != @maintenance_ticket.status
+        redirect_to maintenance_ticket_path(@maintenance_ticket),
+                    flash: {
+                      status_update: "Moved status from #{previous_status.humanize} to #{@maintenance_ticket.status.humanize}"
+                    }
       if status_update_message
         redirect_to maintenance_ticket_path(@maintenance_ticket),
                     flash: { status_update: status_update_message }

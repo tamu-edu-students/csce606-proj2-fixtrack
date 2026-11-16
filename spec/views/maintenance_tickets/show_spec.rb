@@ -267,11 +267,24 @@ RSpec.describe "maintenance_tickets/show", type: :view do
       expect(alert.css("ul, ol, li")).to be_empty
     end
 
+    it "shows a labeled status selector and an inline five-second transition message" do
     it "shows repair update confirmation inside the repair panel" do
       ticket.update!(assigned_technician: technician)
       signed_in_user = technician
       view.define_singleton_method(:current_user) { signed_in_user }
       view.define_singleton_method(:flash) do
+        { status_update: "Moved status from Assigned to In progress" }
+      end
+
+      render partial: "maintenance_tickets/status_update", locals: { ticket: ticket }
+      html = Nokogiri::HTML.fragment(rendered)
+      panel = html.at_css(".ticket-status-update")
+
+      expect(panel.at_css("label")).to be_nil
+      expect(panel.at_css("select[aria-label='Choose a status']")).to be_present
+      expect(panel.at_css("[role='status'][data-auto-dismiss='5000']").text.strip)
+        .to eq("Moved status from Assigned to In progress")
+    end
         { repair_record_update: "Repair record updated." }
       end
       assign(:maintenance_ticket, ticket)

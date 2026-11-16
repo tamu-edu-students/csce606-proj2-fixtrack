@@ -190,6 +190,7 @@ function restoreRepairDrafts() {
   });
 }
 
+function scheduleAutoDismissMessages() {
 function scheduleAutoDismissal() {
   document.querySelectorAll("[data-auto-dismiss]").forEach((message) => {
     window.setTimeout(() => {
@@ -213,6 +214,7 @@ function formatLocalTimes() {
 
 function initializeRepairRecordPage() {
   restoreRepairDrafts();
+  scheduleAutoDismissMessages();
   scheduleAutoDismissal();
   formatLocalTimes();
 }
