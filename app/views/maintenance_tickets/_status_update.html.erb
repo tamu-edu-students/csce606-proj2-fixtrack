@@ -1,13 +1,20 @@
 <% status_options = MaintenanceTicket.status_options_for(current_user, ticket) %>
 
 <section class="ticket-panel ticket-status-update" aria-labelledby="ticket-status-update-title">
-  <h2 id="ticket-status-update-title">Change status</h2>
+  <h2 id="ticket-status-update-title">Status</h2>
 
   <% if flash[:status_update].present? %>
     <p class="ticket-message ticket-message--success ticket-message--panel"
        role="status"
        data-auto-dismiss="5000">
       <%= flash[:status_update] %>
+    </p>
+  <% end %>
+  <% if flash[:alert].present? %>
+    <p class="ticket-message ticket-message--error ticket-message--panel"
+       role="alert"
+       data-auto-dismiss="5000">
+      <%= flash[:alert] %>
     </p>
   <% end %>
 
@@ -20,6 +27,8 @@
                      aria: { label: "Choose a status" } %>
       <%= submit_tag "Update status" %>
     <% end %>
+  <% elsif current_user&.role == "reporter" && ticket.reporter_id != current_user.id %>
+    <p class="ticket-status-update__current-status"><%= ticket.status.to_s.humanize %></p>
   <% else %>
     <p>Status changes aren't available for your account.</p>
   <% end %>

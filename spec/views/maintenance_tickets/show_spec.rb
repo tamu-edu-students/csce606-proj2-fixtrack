@@ -123,7 +123,8 @@ RSpec.describe "maintenance_tickets/show", type: :view do
       table = html.at_css("table.ticket-repair-history__table")
       rows = table.css("tbody tr")
 
-      expect(html.at_css("h2").text).to eq("Repairs")
+      expect(html.at_css(".ticket-repair-history h2")).to be_nil
+      expect(html.at_css(".ticket-repair-history")["aria-label"]).to eq("Repair history")
       expect(html.css("ul, ol")).to be_empty
       expect(table.css("th").map { |header| header.text.gsub(/\s+/, " ").strip }).to eq(
         [ "Repair Expand all", "Recorded at ↑" ]
@@ -299,10 +300,68 @@ RSpec.describe "maintenance_tickets/show", type: :view do
       html = Nokogiri::HTML.fragment(rendered)
       panel = html.at_css(".ticket-status-update")
 
+      expect(panel.at_css("h2").text).to eq("Status")
       expect(panel.at_css("label")).to be_nil
       expect(panel.at_css("select[aria-label='Choose a status']")).to be_present
       expect(panel.at_css("[role='status'][data-auto-dismiss='5000']").text.strip)
         .to eq("Moved status from Assigned to In progress")
+    end
+
+    it "shows the current status to a reporter who did not report the ticket" do
+      ticket.update!(
+        reporter: User.create!(
+          name: "Another Reporter",
+          email: "another-reporter@example.com",
+          password: "password",
+          role: "reporter"
+        )
+      )
+      signed_in_user = reporter
+      view.define_singleton_method(:current_user) { signed_in_user }
+
+      render partial: "maintenance_tickets/status_update", locals: { ticket: ticket }
+      panel = Nokogiri::HTML.fragment(rendered).at_css(".ticket-status-update")
+
+      expect(panel.at_css("select")).to be_nil
+      expect(panel.text).not_to include("You can only update the status of tickets you reported.")
+      expect(panel.at_css(".ticket-status-update__current-status").text.strip)
+        .to eq("In progress")
+    end
+
+    it "shows a permission error after a reporter attempts to update someone else's ticket" do
+      ticket.update!(
+        reporter: User.create!(
+          name: "Another Reporter",
+          email: "another-reporter@example.com",
+          password: "password",
+          role: "reporter"
+        )
+      )
+      signed_in_user = reporter
+      view.define_singleton_method(:current_user) { signed_in_user }
+      view.define_singleton_method(:flash) do
+        { alert: "You can only update the status of tickets you reported." }
+      end
+
+      render partial: "maintenance_tickets/status_update", locals: { ticket: ticket }
+      error = Nokogiri::HTML.fragment(rendered)
+        .at_css(".ticket-status-update [role='alert']")
+
+      expect(error.text.strip)
+        .to eq("You can only update the status of tickets you reported.")
+      expect(Nokogiri::HTML.fragment(rendered)
+        .at_css(".ticket-status-update__current-status").text.strip).to eq("In progress")
+    end
+
+    it "keeps status options for reporters who reported the ticket" do
+      signed_in_user = reporter
+      view.define_singleton_method(:current_user) { signed_in_user }
+
+      render partial: "maintenance_tickets/status_update", locals: { ticket: ticket }
+      panel = Nokogiri::HTML.fragment(rendered).at_css(".ticket-status-update")
+
+      expect(panel.at_css("select[aria-label='Choose a status']")).to be_present
+      expect(panel.at_css(".ticket-status-update__current-status")).to be_nil
     end
 
     it "shows repair update confirmation inside the repair panel" do

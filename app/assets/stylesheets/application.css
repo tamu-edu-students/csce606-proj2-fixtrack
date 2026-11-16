@@ -44,8 +44,7 @@
 }
 
 .ticket-status-update > h2,
-.ticket-repair-panel h2,
-.ticket-repair-history > h2 {
+.ticket-repair-panel h2 {
   margin: 0 0 1rem;
 }
 
@@ -229,6 +228,12 @@
 
 .ticket-status-update select {
   display: block;
+}
+
+.ticket-status-update__current-status {
+  margin: 0 0 1rem;
+  font-size: inherit;
+  font-weight: normal;
 }
 
 .ticket-status-update__confirmation {
