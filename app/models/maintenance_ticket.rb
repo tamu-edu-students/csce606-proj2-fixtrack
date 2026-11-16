@@ -44,8 +44,17 @@ class MaintenanceTicket < ApplicationRecord
             inclusion: { in: STATUSES }
 
   validate :equipment_id_must_reference_existing_equipment
+  validate :assigned_technician_must_be_eligible
 
   private
+
+  def assigned_technician_must_be_eligible
+    # Unassigned tickets are valid; a selected user must exist and be a technician.
+    return if assigned_technician_id.blank?
+    return if assigned_technician&.technician?
+
+    errors.add(:assigned_technician, "must be an existing technician")
+  end
 
   def equipment_id_must_reference_existing_equipment
     return if equipment_id.blank?
