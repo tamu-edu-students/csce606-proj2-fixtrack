@@ -2,7 +2,7 @@ class MaintenanceTicketsController < ApplicationController
   TECHNICIAN_VISIBLE_STATUSES = %w[assigned in_progress].freeze
   STATUSES_BEFORE_REPAIR = MaintenanceTicket::STATUSES_BEFORE_REPAIR
   TICKET_ACTION_PARTIALS = {
-    "manager" => %w[priority_update technician_assignment].freeze,
+    "manager" => %w[technician_assignment].freeze,
     "technician" => %w[repair_record_form].freeze
   }.freeze
 
@@ -43,7 +43,7 @@ class MaintenanceTicketsController < ApplicationController
     if @maintenance_ticket.update(priority_params)
       redirect_to maintenance_ticket_path(@maintenance_ticket),
                   status: :see_other,
-                  notice: "Ticket priority updated successfully."
+                  flash: { priority_update: "Ticket priority updated successfully." }
     else
       # Rebuild the detail page without show's status-normalization side effect.
       prepare_ticket_details
@@ -97,7 +97,9 @@ class MaintenanceTicketsController < ApplicationController
 
   def prepare_ticket_details
     @repair_records_order = params[:repair_records_order] == "desc" ? "desc" : "asc"
-    @ticket_action_partials = TICKET_ACTION_PARTIALS.fetch(current_user.role, [])
+    @ticket_action_partials = TICKET_ACTION_PARTIALS.fetch(current_user.role, []).dup
+    # Priority access includes Admins, so use the same policy as the endpoint.
+    @ticket_action_partials.unshift("priority_update") if policy(@maintenance_ticket).update_priority?
     if current_user.technician? &&
        @maintenance_ticket.assigned_technician_id != current_user.id
       @ticket_action_partials = []

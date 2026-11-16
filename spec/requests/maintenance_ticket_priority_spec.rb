@@ -33,15 +33,35 @@ RSpec.describe "Ticket priority updates", type: :request do
   context "as a manager" do
     before { log_in(manager) }
 
+    it "does not show the Devise login notice as priority feedback" do
+      get maintenance_ticket_path(ticket)
+
+      expect(response).to have_http_status(:ok)
+      expect(flash[:notice]).to eq(I18n.t("devise.sessions.signed_in"))
+      html = Nokogiri::HTML(response.body)
+      expect(html.at_css(".ticket-priority-update [role='status']")).to be_nil
+      expect(html.at_css(".ticket-page-feedback [role='status']")).to be_nil
+    end
+
     %w[low medium high].each do |priority|
       it "persists #{priority} priority, including when unchanged" do
         update_priority(priority: priority)
 
         expect(response).to have_http_status(:see_other)
         expect(response).to redirect_to(maintenance_ticket_path(ticket))
-        expect(flash[:notice]).to eq("Ticket priority updated successfully.")
+        expect(flash[:priority_update]).to eq("Ticket priority updated successfully.")
         expect(ticket.reload.priority).to eq(priority)
         expect(ticket.status).to eq("assigned")
+
+        follow_redirect!
+
+        html = Nokogiri::HTML(response.body)
+        expect(html.at_css(".ticket-priority-update [role='status']").text)
+          .to include("Ticket priority updated successfully.")
+        expect(html.at_css(".ticket-page-feedback [role='status']").text)
+          .to include("Ticket priority updated successfully.")
+        expect(html.at_css("select[name='maintenance_ticket[priority]'] option[selected]")["value"])
+          .to eq(priority)
       end
     end
 
@@ -57,6 +77,10 @@ RSpec.describe "Ticket priority updates", type: :request do
         expect(html.at_css("#ticket-details-title").text).to eq(ticket.title)
         expect(html.at_css(".ticket-repair-history")).to be_present
         expect(html.at_css(".ticket-status-update")).to be_present
+        expect(html.at_css(".ticket-priority-update [role='alert']").text).to include("Priority")
+        expect(html.at_css("select[name='maintenance_ticket[priority]']")["aria-invalid"]).to eq("true")
+        expect(html.at_css("select[name='maintenance_ticket[priority]']")["aria-describedby"])
+          .to eq("ticket-priority-errors")
         expect(ticket.reload.attributes).to eq(original_attributes)
       end
     end
@@ -115,11 +139,47 @@ RSpec.describe "Ticket priority updates", type: :request do
 
       expect(response).to have_http_status(:not_found)
     end
+
+    %w[low medium high].each do |priority|
+      it "shows the priority control with #{priority} preselected" do
+        ticket.update!(priority: priority)
+
+        get maintenance_ticket_path(ticket)
+
+        expect(response).to have_http_status(:ok)
+        html = Nokogiri::HTML(response.body)
+        panel = html.at_css(".ticket-side-panels .ticket-priority-update")
+        form = panel.at_css("form")
+        selector = form.at_css("select[name='maintenance_ticket[priority]']")
+        expect(panel.at_css("label")["for"]).to eq(selector["id"])
+        expect(form["action"]).to eq(priority_maintenance_ticket_path(ticket))
+        expect(form.at_css("input[name='_method']")["value"]).to eq("patch")
+        expect(selector.css("option").map { |option| option["value"] })
+          .to eq([ "", "low", "medium", "high" ])
+        expect(selector.at_css("option[selected]")["value"]).to eq(priority)
+        expect(form.at_css("input[type='submit']")["value"]).to eq("Update priority")
+        expect(html.at_css(".ticket-status-update")).to be_present
+      end
+    end
   end
 
   %w[technician reporter].each do |role|
     context "as a #{role}" do
       before { log_in(public_send(role)) }
+
+      it "shows priority information without the priority control" do
+        get maintenance_ticket_path(ticket)
+
+        expect(response).to have_http_status(:ok)
+        html = Nokogiri::HTML(response.body)
+        expect(html.at_css(".ticket-priority-update")).to be_nil
+        expect(html.at_css("select[name='maintenance_ticket[priority]']")).to be_nil
+        expect(html.at_css(".ticket-details").text).to include("Priority", "Medium")
+        expect(html.at_css(".ticket-status-update")).to be_present
+        if role == "technician"
+          expect(html.at_css("form[data-repair-add-form]")).to be_present
+        end
+      end
 
       it "returns 403 without changing the ticket" do
         original_attributes = ticket.attributes
