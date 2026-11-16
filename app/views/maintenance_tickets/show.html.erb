@@ -13,6 +13,14 @@
 
     <% if @ticket_action_partials.include?("repair_record_form") %>
       <section class="ticket-panel ticket-repair-panel" aria-label="Repair record editor">
+        <% if flash[:repair_record_update].present? %>
+          <p class="ticket-message ticket-message--success"
+             role="status"
+             data-auto-dismiss="5000">
+            <%= flash[:repair_record_update] %>
+          </p>
+        <% end %>
+
         <section data-repair-panel="add"
                  aria-labelledby="repair-record-form-title"
                  <%= "hidden" if @active_repair_panel_id.present? %>>

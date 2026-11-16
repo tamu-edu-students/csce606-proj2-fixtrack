@@ -220,7 +220,7 @@ RSpec.describe "maintenance_tickets/show", type: :view do
     end
 
     it "marks repair validation errors to dismiss after five seconds" do
-      repair_record = ticket.repair_records.build(title: "")
+      repair_record = ticket.repair_records.build(technician: technician, title: "")
       repair_record.valid?
 
       render partial: "maintenance_tickets/repair_record_form",
@@ -229,7 +229,43 @@ RSpec.describe "maintenance_tickets/show", type: :view do
 
       expect(alert["data-repair-validation-errors"]).to eq("true")
       expect(alert["data-auto-dismiss"]).to eq("5000")
+      expect(alert["class"]).to include("ticket-message--error")
+      expect(alert.text.strip).to eq("Title can't be blank")
+      expect(alert.css("ul, ol, li")).to be_empty
     end
+
+    it "shows repair update confirmation inside the repair panel" do
+      ticket.update!(assigned_technician: technician)
+      signed_in_user = technician
+      view.define_singleton_method(:current_user) { signed_in_user }
+      view.define_singleton_method(:flash) do
+        { repair_record_update: "Repair record updated." }
+      end
+      assign(:maintenance_ticket, ticket)
+      assign(:ticket_action_partials, [ "repair_record_form" ])
+      assign(:new_repair_record, ticket.repair_records.build)
+      assign(:active_repair_panel_id, nil)
+
+      render template: "maintenance_tickets/show"
+      message = Nokogiri::HTML.fragment(rendered)
+        .at_css(".ticket-repair-panel .ticket-message--success")
+
+      expect(message.text.strip).to eq("Repair record updated.")
+      expect(message["data-auto-dismiss"]).to eq("5000")
+    end
+  end
+
+  it "shows status confirmations in the status panel" do
+    view.define_singleton_method(:flash) do
+      { status_update: "Moved status from Assigned to In progress" }
+    end
+
+    render partial: "maintenance_tickets/status_update", locals: { ticket: ticket }
+    message = Nokogiri::HTML.fragment(rendered)
+      .at_css(".ticket-status-update .ticket-message--success")
+
+    expect(message.text.strip).to eq("Moved status from Assigned to In progress")
+    expect(message["data-auto-dismiss"]).to eq("5000")
   end
 
   it "renders shared details and the controller-selected action partials on the show page" do

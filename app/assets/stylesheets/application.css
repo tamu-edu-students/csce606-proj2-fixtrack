@@ -42,6 +42,23 @@
   background: #fff;
 }
 
+.ticket-message {
+  margin: 0 0 1rem;
+  padding: 0.75rem;
+}
+
+.ticket-message--success {
+  border-left: 0.25rem solid #21834a;
+  background: #effaf2;
+  color: #185c35;
+}
+
+.ticket-message--error {
+  border-left: 0.25rem solid #b42318;
+  background: #fef3f2;
+  color: #912018;
+}
+
 .ticket-repair-panel {
   min-width: 0;
 }

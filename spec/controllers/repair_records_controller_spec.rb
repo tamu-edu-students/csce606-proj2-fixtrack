@@ -60,6 +60,9 @@ RSpec.describe RepairRecordsController do
       expect(repair_record.title).to eq("Motor replacement")
       expect(repair_record.description).to eq("Replaced the motor")
       expect(ticket.reload.status).to eq("in_progress")
+      expect(controller.flash[:status_update]).to eq(
+        "Moved status from Assigned to In progress"
+      )
     end
 
     it "allows multiple repair records on the same ticket" do
@@ -223,6 +226,7 @@ RSpec.describe RepairRecordsController do
       expect(repair_record.reload.title).to eq("Motor rebuilt")
       expect(repair_record.description).to eq("Rebuilt and tested the motor")
       expect(controller.response).to be_redirect
+      expect(controller.flash[:repair_record_update]).to eq("Repair record updated.")
     end
 
     it "loads the fallback edit page for the assigned technician" do

@@ -13,14 +13,12 @@
   <%= hidden_field_tag :panel_edit, "true" if panel_edit %>
 
   <% if repair_record.errors.any? %>
-    <div role="alert" data-repair-validation-errors="true" data-auto-dismiss="5000">
-      <p>Repair record could not be saved:</p>
-      <ul>
-        <% repair_record.errors.full_messages.each do |message| %>
-          <li><%= message %></li>
-        <% end %>
-      </ul>
-    </div>
+    <p class="ticket-message ticket-message--error"
+       role="alert"
+       data-repair-validation-errors="true"
+       data-auto-dismiss="5000">
+      <%= repair_record.errors.full_messages.to_sentence %>
+    </p>
   <% end %>
 
   <div>

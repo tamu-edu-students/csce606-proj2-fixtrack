@@ -44,6 +44,7 @@ class MaintenanceTicketsController < ApplicationController
   def update_status
     ticket = MaintenanceTicket.find(params[:id])
     requested_status = params[:status]
+    previous_status = ticket.status
 
     unless status_options_for(current_user, ticket).include?(requested_status)
       redirect_to maintenance_ticket_path(ticket),
@@ -52,8 +53,14 @@ class MaintenanceTicketsController < ApplicationController
     end
 
     if ticket.update(status: requested_status)
-      redirect_to maintenance_ticket_path(ticket),
-                  notice: "Ticket status updated."
+      if previous_status == requested_status
+        redirect_to maintenance_ticket_path(ticket)
+      else
+        redirect_to maintenance_ticket_path(ticket),
+                    flash: {
+                      status_update: "Moved status from #{previous_status.humanize} to #{requested_status.humanize}"
+                    }
+      end
     else
       redirect_to maintenance_ticket_path(ticket),
                   alert: ticket.errors.full_messages.to_sentence
