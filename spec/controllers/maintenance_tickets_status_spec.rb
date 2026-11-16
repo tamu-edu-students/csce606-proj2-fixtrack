@@ -121,6 +121,12 @@ RSpec.describe MaintenanceTicketsController do
         "/issues/12",
         flash: { status_update: "Moved status from Submitted to Assigned" }
       )
+
+      update_status_as(manager, "assigned")
+    end
+
+    it "does not update or confirm a ticket when its status is unchanged" do
+      expect(ticket).not_to receive(:update)
       expect(controller).to receive(:redirect_to).with("/issues/12")
 
       update_status_as(manager, "assigned")
