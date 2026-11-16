@@ -1,11 +1,18 @@
-<% status_options = status_options_for(current_user, ticket) %>
+<% status_options = MaintenanceTicket.status_options_for(current_user, ticket) %>
 
-<section class="ticket-status-update" aria-labelledby="ticket-status-update-title">
+<section class="ticket-panel ticket-status-update" aria-labelledby="ticket-status-update-title">
   <h2 id="ticket-status-update-title">Change status</h2>
+
+  <% if flash[:status_update].present? %>
+    <p class="ticket-message ticket-message--success ticket-message--panel"
+       role="status"
+       data-auto-dismiss="5000">
+      <%= flash[:status_update] %>
+    </p>
+  <% end %>
 
   <% if status_options.any? %>
     <%= form_with url: update_maintenance_ticket_status_path(ticket), method: :patch do %>
-      <%= label_tag :status, "New status" %>
       <%= select_tag :status,
                      options_for_select(status_options.map { |status| [status.humanize, status] },
                                         ticket.status),

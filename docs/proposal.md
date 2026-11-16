@@ -16,7 +16,7 @@ App Name
 FixTrack - Equipment Maintenance & Repair Tracker
 Short Description
 FixTrack is a cloud-hosted web application that provides a modern solution to equipment problems faced by small engineering teams, laboratories, workshops, and maintenance organizations. Currently, there is no easy way for workers to tell whether equipment is available or not and whether a fault has been fixed and by whom. Workers must look through spreadsheets, emails, paper records, and informal conversations to track down the repair work that is being done on a particular piece of equipment.
-This application allows managers to register equipment with its asset ID, description, location, and current status. When there is a problem, an authenticated user can register a maintenance ticket indicating what the problem is and its priority. The manager can assign a technician for the repair, and the technician can update the ticket and register the repair that has been made and the date when the repair was finished.
+This application allows managers to register equipment with its asset ID, description, location, and current status. When there is a problem, an authenticated user can register a maintenance ticket indicating what the problem is and its priority. The manager can assign a technician for the repair, and the technician can update the ticket and document the repair with a title and notes.
 FixTrack connects every maintenance ticket and repair record to the specific equipment it relates to, so users can have a comprehensive history when making future decisions. Permissions are set based on roles, so only managers can make changes to equipment or assignments; technicians can only manage the tickets that have been assigned to them. FixTrack centralizes equipment information, assignments, ticket statuses, and a complete repair history to coordinate work and prevent missed or duplicative work.
 Product Goal
 At the end of this project, FixTrack will allow a maintenance team and equipment manager to track all equipment problems from initial report to resolution. FixTrack will accomplish this by allowing equipment management, maintenance tickets, assigning tickets to technicians, recording repairs, and tracking the status of equipment via a secure cloud-hosted web application.
@@ -77,11 +77,13 @@ Submitted → Assigned → In Progress → Ready for Verification → Closed
 Invalid or unauthorized transitions will be rejected with an appropriate error message.
 5. Repair Records and Equipment History
 Technicians can document completed repair work.
+Tickets with repair records cannot be moved below In Progress; the ticket is automatically moved to In Progress when viewed if needed.
+Only the assigned technician may edit or delete repair records while the ticket is Assigned or In Progress. On the ticket view, Edit replaces the Add panel with a Repair Details panel; Cancel discards edit changes, and Delete asks for inline confirmation. Unsaved Add-form values remain locally available while editing.
 Repair records contain information such as:
 • Related maintenance ticket
 • Technician
-• Repair description
-• Completion date
+• Repair title
+• Repair notes
 Users can view the maintenance and repair history associated with equipment.
 Out-of-Scope Features
 The following features are intentionally excluded from the required MVP:
@@ -159,7 +161,7 @@ As a technician, I want to document a completed repair so that future users can 
 Acceptance considerations:
 • A repair record is associated with a maintenance ticket.
 • The technician and repair information are recorded.
-• Required information is validated.
+• Repair titles are required; repair notes are optional.
 • Unauthorized users cannot create repair records for tickets they cannot manage.
 Estimate: 5 points
 
@@ -245,8 +247,8 @@ Important fields:
 • id
 • maintenance_ticket_id
 • technician_id
+• title
 • description
-• completed_at
 • timestamps
 Relationships:
 • Belongs to a maintenance ticket.

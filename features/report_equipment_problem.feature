@@ -23,7 +23,7 @@ Feature: Report an equipment problem
     And I fill in "Problem Description" with "Motor does not start"
     And I select "High" as the priority
     And I submit the problem report
-    Then I should see "Title can't be blank"
+    Then I should see "Repair title can't be blank"
 
   Scenario: Prevent unauthenticated ticket creation
     Given I am not logged in

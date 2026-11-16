@@ -1,10 +1,6 @@
 class MaintenanceTicketsController < ApplicationController
-  STATUS_OPTIONS_BY_ROLE = {
-    "manager" => %w[submitted rejected assigned],
-    "technician" => %w[assigned in_progress ready_for_verification]
-  }.freeze
-
   TECHNICIAN_VISIBLE_STATUSES = %w[assigned in_progress].freeze
+  STATUSES_BEFORE_REPAIR = MaintenanceTicket::STATUSES_BEFORE_REPAIR
   TICKET_ACTION_PARTIALS = {
     "manager" => %w[priority_update technician_assignment].freeze,
     "technician" => %w[repair_record_form].freeze
@@ -36,12 +32,19 @@ class MaintenanceTicketsController < ApplicationController
 
   def show
     @maintenance_ticket = show_scope.find(params[:id])
+    normalize_status_for_repair_records(@maintenance_ticket)
+    @repair_records_order = params[:repair_records_order] == "desc" ? "desc" : "asc"
     @ticket_action_partials = TICKET_ACTION_PARTIALS.fetch(current_user.role, [])
+    if current_user.technician? &&
+       @maintenance_ticket.assigned_technician_id != current_user.id
+      @ticket_action_partials = []
+    end
   end
 
   def update_status
     ticket = MaintenanceTicket.find(params[:id])
     requested_status = params[:status]
+    previous_status = ticket.status
 
     unless status_options_for(current_user, ticket).include?(requested_status)
       redirect_to maintenance_ticket_path(ticket),
@@ -50,8 +53,14 @@ class MaintenanceTicketsController < ApplicationController
     end
 
     if ticket.update(status: requested_status)
-      redirect_to maintenance_ticket_path(ticket),
-                  notice: "Ticket status updated."
+      if previous_status == requested_status
+        redirect_to maintenance_ticket_path(ticket)
+      else
+        redirect_to maintenance_ticket_path(ticket),
+                    flash: {
+                      status_update: "Moved status from #{previous_status.humanize} to #{requested_status.humanize}"
+                    }
+      end
     else
       redirect_to maintenance_ticket_path(ticket),
                   alert: ticket.errors.full_messages.to_sentence
@@ -59,18 +68,17 @@ class MaintenanceTicketsController < ApplicationController
   end
 
   def status_options_for(user, ticket)
-    return [] unless user
-
-    statuses = STATUS_OPTIONS_BY_ROLE.fetch(user.role, [])
-    if user.role == "technician" && ticket.assigned_technician_id != user.id
-      statuses = []
-    end
-    statuses += [ "submitted" ] if ticket.status == "rejected" && ticket.reporter_id == user.id
-    statuses += [ "closed" ] if ticket.reporter_id == user.id
-    statuses
+    MaintenanceTicket.status_options_for(user, ticket)
   end
 
   private
+
+  def normalize_status_for_repair_records(ticket)
+    return unless ticket.repair_records.exists?
+    return unless STATUSES_BEFORE_REPAIR.include?(ticket.status)
+
+    ticket.update!(status: "in_progress")
+  end
 
   def ticket_scope
     return MaintenanceTicket.all unless current_user&.technician?

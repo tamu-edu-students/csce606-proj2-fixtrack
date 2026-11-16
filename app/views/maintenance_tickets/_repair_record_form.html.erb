@@ -1,1 +1,35 @@
-<%# Placeholder for the technician repair record form. %>
+<% heading = local_assigns.fetch(:heading, "Add a Repair") %>
+<% submit_label = local_assigns.fetch(:submit_label, "Submit") %>
+<% heading_id = local_assigns.fetch(:heading_id, "repair-record-form-title") %>
+<% form_namespace = local_assigns[:form_namespace] %>
+<% panel_edit = local_assigns.fetch(:panel_edit, false) %>
+<% add_form = local_assigns.fetch(:add_form, false) %>
+<% form_data = add_form ? { repair_add_form: true, repair_ticket_id: ticket.id } : {} %>
+<h2 id="<%= heading_id %>"><%= heading %></h2>
+
+<%= form_with model: [ticket, repair_record],
+              namespace: form_namespace,
+              data: form_data do |form| %>
+  <%= hidden_field_tag :panel_edit, "true" if panel_edit %>
+
+  <% if repair_record.errors.any? %>
+    <p class="ticket-message ticket-message--error ticket-message--panel"
+       role="alert"
+       data-repair-validation-errors="true"
+       data-auto-dismiss="5000">
+      <%= repair_record.errors.full_messages.to_sentence %>
+    </p>
+  <% end %>
+
+  <div>
+    <%= form.label :title, "Repair title" %>
+    <%= form.text_field :title, required: true %>
+  </div>
+
+  <div>
+    <%= form.label :description, "Repair notes" %>
+    <%= form.text_area :description, rows: 4 %>
+  </div>
+
+  <%= form.submit submit_label %>
+<% end %>

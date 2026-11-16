@@ -6,7 +6,9 @@ Rails.application.routes.draw do
   end
 
   devise_for :users
-  resources :maintenance_tickets, path: "issues", only: %i[index new create show]
+  resources :maintenance_tickets, path: "issues", only: %i[index new create show] do
+    resources :repair_records, only: %i[create edit update destroy]
+  end
 
   namespace :manager do
     resources :maintenance_tickets, only: :index
