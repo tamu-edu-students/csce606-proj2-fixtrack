@@ -31,6 +31,7 @@
 
   <main class="ticket-show-content">
     <%= render "maintenance_tickets/shared_information", ticket: @maintenance_ticket %>
+    <%= render "maintenance_tickets/equipment_information", ticket: @maintenance_ticket %>
     <%= render "maintenance_tickets/repair_records",
                ticket: @maintenance_ticket,
                order: @repair_records_order || "asc",

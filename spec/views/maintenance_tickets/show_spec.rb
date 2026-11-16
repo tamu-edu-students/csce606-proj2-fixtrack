@@ -37,21 +37,41 @@ RSpec.describe "maintenance_tickets/show", type: :view do
       render partial: "maintenance_tickets/shared_information", locals: { ticket: ticket }
       html = Nokogiri::HTML.fragment(rendered)
 
-      expect(html.at_css("h1").text).to eq("Pump overheats")
-      expect(html.at_css("dl").text).to include(
-        "Ticket ID", ticket.id.to_s,
-        "Equipment", "Water Pump",
-        "Equipment Identifier", "PUMP-001",
+      expect(html.at_css("h1").text).to eq("##{ticket.id} / Pump overheats")
+      expect(html.at_css(".ticket-details").text).to include(
         "Issue Description", "The pump stops during operation.",
-        "Priority", "High",
-        "Status", "In progress",
-        "Reported By", "Jamie Reporter",
-        "Created", "Last Updated"
+        "Reported By:", "Jamie Reporter",
+        "Created:", "Last Updated"
       )
-      expect(html.at_css("a[href='#{equipment_path(equipment)}']").text).to eq("PUMP-001")
+      expect(html.at_css(".ticket-details").text).not_to include("Status")
+      expect(html.at_css(".ticket-details__header > .ticket-details__priority")["aria-label"])
+        .to eq("Priority: High")
+      expect(html.at_css(".ticket-details__priority").text.strip).to eq("High")
+      expect(html.at_css(".ticket-details__issue + .ticket-details__last-updated"))
+        .to be_present
       expect(html.css("time[data-local-time='long']").map { |time| time["datetime"] }).to eq(
         [ ticket.created_at.iso8601, ticket.updated_at.iso8601 ]
       )
+      expect(html.css(".ticket-details__metadata-row").map do |row|
+        row.css("dt").map(&:text)
+      end).to eq(
+        [ [ "Reported By:", "Created:" ] ]
+      )
+    end
+
+    it "renders equipment details in a separate three-column panel without a title" do
+      render partial: "maintenance_tickets/equipment_information", locals: { ticket: ticket }
+      html = Nokogiri::HTML.fragment(rendered)
+      panel = html.at_css(".ticket-equipment-panel")
+
+      expect(panel.css("h1, h2, h3")).to be_empty
+      expect(panel.css("dt").map(&:text)).to eq(
+        [ "Equipment", "Equipment Identifier", "Location" ]
+      )
+      expect(panel.css("dd").map(&:text)).to eq(
+        [ "Water Pump", "PUMP-001", "Building A" ]
+      )
+      expect(panel.at_css("a[href='#{equipment_path(equipment)}']").text).to eq("PUMP-001")
     end
 
     it "escapes ticket title and description instead of rendering markup" do
@@ -335,7 +355,9 @@ RSpec.describe "maintenance_tickets/show", type: :view do
       "maintenance_tickets/technician_assignment",
       ticket: ticket
     )
-    expect(html.at_css("#ticket-details-title").text).to eq("Pump overheats")
+    expect(html.at_css("#ticket-details-title").text).to eq("##{ticket.id} / Pump overheats")
+    expect(html.at_css(".ticket-equipment-panel").previous_element)
+      .to eq(html.at_css(".ticket-details"))
     expect(html.at_css("a[href='#{new_maintenance_ticket_path}']").text).to eq("Report Another Problem")
     expect(html.text).to include("The pump stops during operation.", "Jamie Reporter")
   end
