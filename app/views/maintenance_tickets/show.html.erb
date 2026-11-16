@@ -1,4 +1,34 @@
 <div class="ticket-show-layout">
+  <% repair_record_error_messages = @repair_record ? @repair_record.errors.full_messages : [] %>
+  <% if flash[:status_update].present? ||
+        flash[:repair_record_update].present? ||
+        repair_record_error_messages.any? %>
+    <div class="ticket-page-feedback">
+      <% if flash[:status_update].present? %>
+        <p class="ticket-message ticket-message--success"
+           role="status"
+           data-auto-dismiss="5000">
+          <%= flash[:status_update] %>
+        </p>
+      <% end %>
+      <% if flash[:repair_record_update].present? %>
+        <p class="ticket-message ticket-message--success"
+           role="status"
+           data-auto-dismiss="5000">
+          <%= flash[:repair_record_update] %>
+        </p>
+      <% end %>
+      <% if repair_record_error_messages.any? %>
+        <p class="ticket-message ticket-message--error"
+           role="alert"
+           data-repair-validation-errors="true"
+           data-auto-dismiss="5000">
+          <%= repair_record_error_messages.to_sentence %>
+        </p>
+      <% end %>
+    </div>
+  <% end %>
+
   <main class="ticket-show-content">
     <%= render "maintenance_tickets/shared_information", ticket: @maintenance_ticket %>
     <%= render "maintenance_tickets/repair_records",
@@ -14,7 +44,7 @@
     <% if @ticket_action_partials.include?("repair_record_form") %>
       <section class="ticket-panel ticket-repair-panel" aria-label="Repair record editor">
         <% if flash[:repair_record_update].present? %>
-          <p class="ticket-message ticket-message--success"
+          <p class="ticket-message ticket-message--success ticket-message--panel"
              role="status"
              data-auto-dismiss="5000">
             <%= flash[:repair_record_update] %>

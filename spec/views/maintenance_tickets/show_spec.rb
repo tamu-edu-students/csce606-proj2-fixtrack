@@ -259,7 +259,7 @@ RSpec.describe "maintenance_tickets/show", type: :view do
       expect(alert["data-repair-validation-errors"]).to eq("true")
       expect(alert["data-auto-dismiss"]).to eq("5000")
       expect(alert["class"]).to include("ticket-message--error")
-      expect(alert.text.strip).to eq("Title can't be blank")
+      expect(alert.text.strip).to eq("Repair title can't be blank")
       expect(alert.css("ul, ol, li")).to be_empty
     end
 

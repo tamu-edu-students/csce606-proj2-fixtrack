@@ -59,6 +59,10 @@
   color: #912018;
 }
 
+.ticket-page-feedback {
+  display: none;
+}
+
 .ticket-repair-panel {
   min-width: 0;
 }
@@ -236,7 +240,52 @@
 
 @media (max-width: 48rem) {
   .ticket-show-layout {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ticket-page-feedback {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    order: 0;
+  }
+
+  .ticket-page-feedback .ticket-message {
+    margin-bottom: 0;
+  }
+
+  .ticket-panel .ticket-message--panel {
+    display: none;
+  }
+
+  .ticket-show-content,
+  .ticket-side-panels {
+    display: contents;
+  }
+
+  .ticket-details {
+    order: 1;
+  }
+
+  .ticket-status-update {
+    order: 2;
+  }
+
+  .ticket-repair-history {
+    order: 3;
+  }
+
+  .ticket-repair-panel {
+    order: 4;
+  }
+
+  .ticket-side-panels > :not(.ticket-status-update):not(.ticket-repair-panel) {
+    order: 5;
+  }
+
+  .ticket-show-content > :not(.ticket-details):not(.ticket-repair-history) {
+    order: 6;
   }
 
   .ticket-side-panels {

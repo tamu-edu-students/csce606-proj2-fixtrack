@@ -13,7 +13,7 @@
   <%= hidden_field_tag :panel_edit, "true" if panel_edit %>
 
   <% if repair_record.errors.any? %>
-    <p class="ticket-message ticket-message--error"
+    <p class="ticket-message ticket-message--error ticket-message--panel"
        role="alert"
        data-repair-validation-errors="true"
        data-auto-dismiss="5000">
