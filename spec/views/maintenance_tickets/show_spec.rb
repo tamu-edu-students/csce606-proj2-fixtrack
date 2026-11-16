@@ -268,7 +268,6 @@ RSpec.describe "maintenance_tickets/show", type: :view do
     end
 
     it "shows a labeled status selector and an inline five-second transition message" do
-    it "shows repair update confirmation inside the repair panel" do
       ticket.update!(assigned_technician: technician)
       signed_in_user = technician
       view.define_singleton_method(:current_user) { signed_in_user }
@@ -285,6 +284,12 @@ RSpec.describe "maintenance_tickets/show", type: :view do
       expect(panel.at_css("[role='status'][data-auto-dismiss='5000']").text.strip)
         .to eq("Moved status from Assigned to In progress")
     end
+
+    it "shows repair update confirmation inside the repair panel" do
+      ticket.update!(assigned_technician: technician)
+      signed_in_user = technician
+      view.define_singleton_method(:current_user) { signed_in_user }
+      view.define_singleton_method(:flash) do
         { repair_record_update: "Repair record updated." }
       end
       assign(:maintenance_ticket, ticket)
