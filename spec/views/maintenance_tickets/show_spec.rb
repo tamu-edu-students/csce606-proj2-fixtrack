@@ -30,7 +30,6 @@ RSpec.describe "maintenance_tickets/show", type: :view do
 
   before do
     view.define_singleton_method(:current_user) { nil }
-    view.define_singleton_method(:status_options_for) { |_user, _ticket| [] }
   end
 
   describe "shared information" do
@@ -67,6 +66,145 @@ RSpec.describe "maintenance_tickets/show", type: :view do
     end
   end
 
+  describe "repair records" do
+    let(:technician) do
+      User.create!(
+        name: "Taylor Technician",
+        email: "taylor@example.com",
+        password: "password",
+        role: "technician"
+      )
+    end
+
+    let!(:oldest_repair_record) do
+      ticket.repair_records.create!(
+        technician: technician,
+        title: "Initial repair",
+        description: "Replaced the motor.",
+        created_at: Time.zone.parse("2026-11-15 09:00")
+      )
+    end
+    let!(:newest_repair_record) do
+      ticket.repair_records.create!(
+        technician: technician,
+        title: "Follow-up repair",
+        description: "Adjusted the motor.",
+        created_at: Time.zone.parse("2026-11-16 09:00")
+      )
+    end
+
+    it "shows oldest records first with expandable titles and recorded times" do
+      render partial: "maintenance_tickets/repair_records",
+             locals: { ticket: ticket, order: "asc" }
+      html = Nokogiri::HTML.fragment(rendered)
+      table = html.at_css("table.ticket-repair-history__table")
+      rows = table.css("tbody tr")
+
+      expect(html.at_css("h2").text).to eq("Repairs")
+      expect(html.css("ul, ol")).to be_empty
+      expect(table.css("th").map { |header| header.text.gsub(/\s+/, " ").strip }).to eq(
+        [ "Repair Expand all", "Recorded at ↑" ]
+      )
+      expect(table.at_css("[data-repair-records-toggle]")["aria-expanded"]).to eq("false")
+      expect(table.css("details[open]")).to be_empty
+      expect(table.at_css("th[aria-sort='ascending']")).to be_present
+      expect(rows.map { |row| row.at_css("details summary").text }).to eq(
+        [ "Initial repair", "Follow-up repair" ]
+      )
+      expect(rows.first.at_css("details p").text).to eq("Replaced the motor.")
+      expect(rows.first.at_css("time")["datetime"]).to eq(oldest_repair_record.created_at.iso8601)
+      expect(rows.first.text).to include(
+        oldest_repair_record.created_at.strftime("%m/%d/%y %I:%M %p")
+      )
+      expect(table.at_css("th a")["href"]).to include("repair_records_order=desc")
+    end
+
+    it "sorts newest first when the recorded-at header is selected" do
+      render partial: "maintenance_tickets/repair_records",
+             locals: { ticket: ticket, order: "desc" }
+      html = Nokogiri::HTML.fragment(rendered)
+      table = html.at_css("table.ticket-repair-history__table")
+
+      expect(table.at_css("th[aria-sort='descending']")).to be_present
+      expect(table.css("tbody tr details summary").map(&:text)).to eq(
+        [ "Follow-up repair", "Initial repair" ]
+      )
+      expect(table.at_css("th a")["href"]).to include("repair_records_order=asc")
+    end
+
+    it "shows edit and delete controls only to the assigned technician" do
+      ticket.update!(assigned_technician: technician)
+      signed_in_user = technician
+      view.define_singleton_method(:current_user) { signed_in_user }
+
+      render partial: "maintenance_tickets/repair_records",
+             locals: { ticket: ticket, order: "asc" }
+      html = Nokogiri::HTML.fragment(rendered)
+
+      expect(html.css("a.ticket-repair-history__edit").map(&:text)).to eq(%w[Edit Edit])
+      expect(html.css("tr[data-repair-editor]")).to be_empty
+      expect(html.css("[data-repair-delete-start]").map(&:text))
+        .to eq(%w[Delete Delete])
+      expect(html.css("[data-repair-delete-confirmation][hidden]").size).to eq(2)
+      expect(html.css("[data-repair-delete-confirmation]").map(&:text).join)
+        .to include("Delete this repair record?", "Confirm", "Cancel")
+      expect(html.css("[data-repair-delete-confirmation] form").size).to eq(2)
+      expect(html.css(".ticket-repair-history__actions button")).to be_empty
+    end
+
+    it "hides edit and delete controls after the ticket leaves editable statuses" do
+      ticket.update!(
+        assigned_technician: technician,
+        status: "ready_for_verification"
+      )
+      signed_in_user = technician
+      view.define_singleton_method(:current_user) { signed_in_user }
+
+      render partial: "maintenance_tickets/repair_records",
+             locals: { ticket: ticket, order: "asc" }
+      html = Nokogiri::HTML.fragment(rendered)
+
+      expect(html.css(".ticket-repair-history__edit, .ticket-repair-history__delete"))
+        .to be_empty
+    end
+
+    it "renders the Add panel and one hidden Repair Details panel per record" do
+      ticket.update!(assigned_technician: technician)
+      signed_in_user = technician
+      view.define_singleton_method(:current_user) { signed_in_user }
+      assign(:maintenance_ticket, ticket)
+      assign(:ticket_action_partials, [ "repair_record_form" ])
+      assign(:new_repair_record, ticket.repair_records.build)
+      assign(:active_repair_panel_id, nil)
+
+      render template: "maintenance_tickets/show"
+      html = Nokogiri::HTML.fragment(rendered)
+
+      expect(html.css('[data-repair-panel="add"][hidden]')).to be_empty
+      expect(html.css('[data-repair-panel="edit"][hidden]').size).to eq(2)
+      expect(html.css("[data-repair-panel-cancel]").size).to eq(2)
+      expect(html.css("form[data-repair-add-form]").size).to eq(1)
+      expect(
+        html.at_css('form[data-repair-add-form] input[name="repair_record[title]"]')["required"]
+      ).to eq("required")
+      expect(
+        html.at_css('form[data-repair-add-form] textarea[name="repair_record[description]"]')["required"]
+      ).to be_nil
+    end
+
+    it "marks repair validation errors to dismiss after five seconds" do
+      repair_record = ticket.repair_records.build(title: "")
+      repair_record.valid?
+
+      render partial: "maintenance_tickets/repair_record_form",
+             locals: { ticket: ticket, repair_record: repair_record }
+      alert = Nokogiri::HTML.fragment(rendered).at_css("[role='alert']")
+
+      expect(alert["data-repair-validation-errors"]).to eq("true")
+      expect(alert["data-auto-dismiss"]).to eq("5000")
+    end
+  end
+
   it "renders shared details and the controller-selected action partials on the show page" do
     assign(:maintenance_ticket, ticket)
     assign(:ticket_action_partials, %w[priority_update technician_assignment])
@@ -75,8 +213,14 @@ RSpec.describe "maintenance_tickets/show", type: :view do
     render template: "maintenance_tickets/show"
     html = Nokogiri::HTML.fragment(rendered)
 
-    expect(view).to have_received(:render).with("priority_update", ticket: ticket)
-    expect(view).to have_received(:render).with("technician_assignment", ticket: ticket)
+    expect(view).to have_received(:render).with(
+      "maintenance_tickets/priority_update",
+      ticket: ticket
+    )
+    expect(view).to have_received(:render).with(
+      "maintenance_tickets/technician_assignment",
+      ticket: ticket
+    )
     expect(html.at_css("#ticket-details-title").text).to eq("Pump overheats")
     expect(html.at_css("a[href='#{new_maintenance_ticket_path}']").text).to eq("Report Another Problem")
     expect(html.text).to include("The pump stops during operation.", "Jamie Reporter")

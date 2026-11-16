@@ -23,7 +23,9 @@
 }
 
 .ticket-repair-panel {
-  align-self: end;
+  position: sticky;
+  top: 1rem;
+  align-self: start;
   padding: 1rem;
   border: 1px solid #d1d5db;
   border-radius: 0.5rem;
@@ -35,11 +37,149 @@
 }
 
 .ticket-repair-panel textarea,
-.ticket-repair-panel input[type="datetime-local"] {
+.ticket-repair-panel input[type="text"] {
   box-sizing: border-box;
   width: 100%;
   margin-bottom: 1rem;
   padding: 0.5rem;
+}
+
+.ticket-repair-panel input[type="text"] {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: normal;
+}
+
+.ticket-repair-history {
+  margin: 1.5rem 0;
+}
+
+.ticket-repair-history__table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.ticket-repair-history__repair-column {
+  width: 70%;
+}
+
+.ticket-repair-history__recorded-column {
+  width: 30%;
+}
+
+.ticket-repair-history__repair-column--with-actions {
+  width: 52%;
+}
+
+.ticket-repair-history__recorded-column--with-actions {
+  width: 26%;
+}
+
+.ticket-repair-history__actions-column {
+  width: 22%;
+}
+
+.ticket-repair-history__table th,
+.ticket-repair-history__table td {
+  padding: 0.5rem 1rem 0.5rem 0;
+  border: 0;
+  text-align: left;
+  vertical-align: top;
+}
+
+.ticket-repair-history__summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #0759a5;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  overflow-wrap: anywhere;
+}
+
+.ticket-repair-history__notes p {
+  overflow-wrap: anywhere;
+}
+
+.ticket-repair-history__summary:hover {
+  color: #003e75;
+}
+
+.ticket-repair-history__summary:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.ticket-repair-history__toggle {
+  margin-left: 0.5rem;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid #0759a5;
+  border-radius: 0.25rem;
+  background: #fff;
+  color: #0759a5;
+  cursor: pointer;
+}
+
+.ticket-repair-history__toggle:hover {
+  background: #f0f7ff;
+}
+
+.ticket-repair-history__action-links,
+.ticket-repair-history__delete-confirmation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.ticket-repair-history__delete-form {
+  margin: 0;
+}
+
+.ticket-repair-history [hidden] {
+  display: none;
+}
+
+.ticket-repair-history__action {
+  font: inherit;
+  font-weight: 600;
+  color: #0759a5;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+
+.ticket-repair-history__action:hover {
+  color: #003e75;
+}
+
+.ticket-repair-history__action:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.ticket-repair-history__delete {
+  color: #a61b1b;
+}
+
+.ticket-repair-history__delete:hover {
+  color: #741414;
+}
+
+.ticket-repair-panel [hidden] {
+  display: none;
+}
+
+.ticket-repair-panel [data-repair-panel="edit"] {
+  padding: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+}
+
+.ticket-repair-history__cancel {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
 }
 
 @media (max-width: 48rem) {
@@ -49,5 +189,6 @@
 
   .ticket-repair-panel {
     align-self: auto;
+    position: static;
   }
 }

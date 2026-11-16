@@ -6,13 +6,20 @@ RSpec.describe MaintenanceTicketsController do
   let(:manager) { Struct.new(:id, :role).new(1, "manager") }
   let(:technician) { Struct.new(:id, :role).new(2, "technician") }
   let(:reporter) { Struct.new(:id, :role).new(3, "reporter") }
+  let(:repair_records) { double(exists?: false) }
   let(:ticket) do
-    ticket_class = Struct.new(:id, :assigned_technician_id, :reporter_id, :status) do
+    ticket_class = Struct.new(
+      :id,
+      :assigned_technician_id,
+      :reporter_id,
+      :status,
+      :repair_records
+    ) do
       def update(**_attributes)
         true
       end
     end
-    ticket_class.new(12, technician.id, reporter.id, "assigned")
+    ticket_class.new(12, technician.id, reporter.id, "assigned", repair_records)
   end
 
   it "allows managers to submit, reject, or assign tickets" do
@@ -34,6 +41,19 @@ RSpec.describe MaintenanceTicketsController do
   it "allows assigned technicians to set assigned, in-progress, or ready-for-verification" do
     expect(controller.status_options_for(technician, ticket))
       .to eq(%w[assigned in_progress ready_for_verification])
+  end
+
+  it "does not offer statuses below in progress when repair records exist" do
+    allow(repair_records).to receive(:exists?).and_return(true)
+
+    expect(controller.status_options_for(technician, ticket))
+      .to eq(%w[in_progress ready_for_verification])
+  end
+
+  it "does not allow managers to return tickets with repairs to a pre-progress status" do
+    allow(repair_records).to receive(:exists?).and_return(true)
+
+    expect(controller.status_options_for(manager, ticket)).to be_empty
   end
 
   it "also allows an assigned technician who created the ticket to close it" do

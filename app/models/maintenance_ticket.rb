@@ -2,6 +2,11 @@ class MaintenanceTicket < ApplicationRecord
   STATUSES = %w[
     submitted rejected assigned in_progress ready_for_verification closed
   ].freeze
+  STATUS_OPTIONS_BY_ROLE = {
+    "manager" => %w[submitted rejected assigned],
+    "technician" => %w[assigned in_progress ready_for_verification]
+  }.freeze
+  STATUSES_BEFORE_REPAIR = %w[submitted rejected assigned].freeze
 
   belongs_to :equipment
   belongs_to :reporter, class_name: "User"
@@ -10,6 +15,22 @@ class MaintenanceTicket < ApplicationRecord
              optional: true
 
   has_many :repair_records
+
+  def self.status_options_for(user, ticket)
+    return [] unless user
+
+    statuses = STATUS_OPTIONS_BY_ROLE.fetch(user.role, [])
+    has_repair_records = ticket.repair_records.exists?
+    if user.role == "technician" && ticket.assigned_technician_id != user.id
+      statuses = []
+    end
+    statuses -= STATUSES_BEFORE_REPAIR if has_repair_records
+    if !has_repair_records && ticket.status == "rejected" && ticket.reporter_id == user.id
+      statuses += [ "submitted" ]
+    end
+    statuses += [ "closed" ] if ticket.reporter_id == user.id
+    statuses
+  end
 
   validates :title, presence: true
   validates :description, presence: true

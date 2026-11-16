@@ -1,8 +1,19 @@
-<h2 id="repair-record-form-title">Add a repair record</h2>
+<% heading = local_assigns.fetch(:heading, "Add a Repair") %>
+<% submit_label = local_assigns.fetch(:submit_label, "Submit") %>
+<% heading_id = local_assigns.fetch(:heading_id, "repair-record-form-title") %>
+<% form_namespace = local_assigns[:form_namespace] %>
+<% panel_edit = local_assigns.fetch(:panel_edit, false) %>
+<% add_form = local_assigns.fetch(:add_form, false) %>
+<% form_data = add_form ? { repair_add_form: true, repair_ticket_id: ticket.id } : {} %>
+<h2 id="<%= heading_id %>"><%= heading %></h2>
 
-<%= form_with model: [ticket, repair_record] do |form| %>
+<%= form_with model: [ticket, repair_record],
+              namespace: form_namespace,
+              data: form_data do |form| %>
+  <%= hidden_field_tag :panel_edit, "true" if panel_edit %>
+
   <% if repair_record.errors.any? %>
-    <div role="alert">
+    <div role="alert" data-repair-validation-errors="true" data-auto-dismiss="5000">
       <p>Repair record could not be saved:</p>
       <ul>
         <% repair_record.errors.full_messages.each do |message| %>
@@ -13,14 +24,14 @@
   <% end %>
 
   <div>
-    <%= form.label :description, "Repair notes" %>
-    <%= form.text_area :description, rows: 4, required: true %>
+    <%= form.label :title, "Repair title" %>
+    <%= form.text_field :title, required: true %>
   </div>
 
   <div>
-    <%= form.label :completed_at, "Completion date and time" %>
-    <%= form.datetime_local_field :completed_at, required: true %>
+    <%= form.label :description, "Repair notes" %>
+    <%= form.text_area :description, rows: 4 %>
   </div>
 
-  <%= form.submit "Add repair record" %>
+  <%= form.submit submit_label %>
 <% end %>

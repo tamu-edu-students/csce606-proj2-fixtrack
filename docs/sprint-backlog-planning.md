@@ -242,7 +242,7 @@ preparation.
 
 - **GitHub issue:** [#12](https://github.com/tamu-edu-students/csce606-proj2-fixtrack/issues/12)
 - **Epic:** Equipment management and discovery
-- **Scope:** Display tickets and repair records for the selected equipment, including repair descriptions, technicians, and completion dates.
+- **Scope:** Display tickets and repair records for the selected equipment, including repair titles, notes, and technicians.
 - **Depends on:** B3, E3
 
 ## Stretch work
