@@ -3,6 +3,10 @@ require "rails_helper"
 
 RSpec.describe MaintenanceTicket, type: :model do
   describe "field validations" do
+    it "defaults new tickets to submitted" do
+      expect(described_class.new.status).to eq("submitted")
+    end
+
     def field_errors(ticket, field)
       ticket.errors.clear
 
