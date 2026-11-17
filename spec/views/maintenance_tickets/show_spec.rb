@@ -354,6 +354,18 @@ RSpec.describe "maintenance_tickets/show", type: :view do
       expect(confirmation.at_css("input[name='confirm_closure']")).to be_present
     end
 
+    it "keeps Submitted available to a reporter when it is the current status" do
+      ticket.update!(status: "submitted")
+      signed_in_user = reporter
+      view.define_singleton_method(:current_user) { signed_in_user }
+
+      render partial: "maintenance_tickets/status_update", locals: { ticket: ticket }
+      panel = Nokogiri::HTML.fragment(rendered).at_css(".ticket-status-update")
+
+      expect(panel.css("select option").map { |option| option["value"] })
+        .to include("submitted")
+    end
+
     it "shows the current status to a reporter who did not report the ticket" do
       ticket.update!(
         reporter: User.create!(

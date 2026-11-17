@@ -95,6 +95,12 @@ RSpec.describe MaintenanceTicketsController do
     expect(controller.status_options_for(reporter, ticket)).to eq(%w[submitted closed])
   end
 
+  it "offers Submitted for a reporter's ticket that is already submitted" do
+    ticket.status = "submitted"
+
+    expect(controller.status_options_for(reporter, ticket)).to eq(%w[submitted closed])
+  end
+
   it "does not allow the reporting user to resubmit a ticket that was not rejected" do
     expect(controller.status_options_for(reporter, ticket)).not_to include("submitted")
   end
@@ -144,6 +150,14 @@ RSpec.describe MaintenanceTicketsController do
       expect(controller).to receive(:redirect_to).with("/issues/12")
 
       update_status_as(manager, "assigned")
+    end
+
+    it "does not update a reporter's ticket when they keep it submitted" do
+      ticket.status = "submitted"
+      expect(ticket).not_to receive(:update)
+      expect(controller).to receive(:redirect_to).with("/issues/12")
+
+      update_status_as(reporter, "submitted")
     end
 
     it "rejects a manager closing a ticket they did not create" do
