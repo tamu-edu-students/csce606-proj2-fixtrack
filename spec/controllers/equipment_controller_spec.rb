@@ -59,8 +59,12 @@ RSpec.describe EquipmentController, type: :controller do
       role: "technician"
     )
 
-    %w[closed assigned].each do |status|
-      6.times do |index|
+    ticket_groups = [
+      [ "closed", Array.new(6, "closed") ],
+      [ "open", %w[submitted rejected assigned in_progress ready_for_verification submitted] ]
+    ]
+    ticket_groups.each do |group, statuses|
+      statuses.each_with_index do |status, index|
         ticket = MaintenanceTicket.create!(
           title: "#{status.humanize} ticket #{index}",
           description: "Equipment history test.",
@@ -68,9 +72,10 @@ RSpec.describe EquipmentController, type: :controller do
           status: status,
           equipment: item,
           reporter: reporter,
+          assigned_technician: %w[assigned in_progress].include?(status) ? technician : nil,
           created_at: Time.current + index.seconds
         )
-        next unless status == "closed" && [ 4, 5 ].include?(index)
+        next unless group == "closed" && [ 4, 5 ].include?(index)
 
         4.times do |repair_index|
           ticket.repair_records.create!(
@@ -97,16 +102,30 @@ RSpec.describe EquipmentController, type: :controller do
       .to eq([ "Open Maintenance Tickets", "Closed Maintenance Tickets" ])
     expect(open_tickets.xpath("./li").length).to eq(6)
     expect(open_tickets.xpath("./li[@hidden]").length).to eq(1)
+    expect(open_tickets.css(".equipment-ticket-history__status").map(&:text))
+      .to include("In Progress - Technician", "Assigned - Technician")
     expect(closed_tickets.at_css("li:first-child a").text).to include("Closed ticket 5")
     expect(closed_tickets.xpath("./li").length).to eq(6)
     expect(closed_tickets.xpath("./li[@hidden]").length).to eq(1)
+    closed_ticket = MaintenanceTicket.find_by!(title: "Closed ticket 5")
+    expect(closed_tickets.at_css("li:first-child .equipment-ticket-history__status").text)
+      .to eq("Closed - #{closed_ticket.updated_at.strftime('%m/%d/%y')}")
+    short_title_repairs = closed_ticket.repair_records.order(created_at: :desc, id: :desc).to_a
+    short_title_summary = short_title_repairs.map do |repair|
+      "#{repair.title} (#{repair.created_at.strftime('%m/%d/%y')})"
+    end.join(", ")
     expect(closed_tickets.at_css("li:first-child .equipment-ticket-history__repair-summary").text.squish)
-      .to eq("Repairs: Repair 3, Repair 2, Repair 1, Repair 0")
+      .to eq("Repairs: #{short_title_summary}")
     expect(closed_tickets.at_css("li:first-child .equipment-ticket-history__repair-overflow"))
       .to be_nil
     long_title_ticket = closed_tickets.at_css("li:nth-child(2)")
+    long_title_repairs = MaintenanceTicket.find_by!(title: "Closed ticket 4")
+      .repair_records.order(created_at: :desc, id: :desc).to_a
+    long_title_summary = long_title_repairs.first(2).map do |repair|
+      "#{repair.title} (#{repair.created_at.strftime('%m/%d/%y')})"
+    end.join(", ")
     expect(long_title_ticket.at_css(".equipment-ticket-history__repair-summary").text.squish)
-      .to eq("Repairs: Repair 3 #{'x' * 35}, Repair 2 #{'x' * 35}")
+      .to eq("Repairs: #{long_title_summary}")
     expect(long_title_ticket.at_css(".equipment-ticket-history__repair-overflow").text)
       .to include("Additional repair records not shown: 2")
     expect(open_tickets.text).to include("No repair records.")

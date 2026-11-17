@@ -4,27 +4,34 @@
     <ul class="equipment-ticket-history__list" id="<%= list_id %>">
       <% tickets.each_with_index do |ticket, index| %>
         <% repair_records = ticket.repair_records.to_a.sort_by { |repair| [ repair.created_at, repair.id ] }.reverse %>
-        <% visible_repairs = [] %>
+        <% visible_repair_summaries = [] %>
         <% repair_summary_characters = "Repairs: ".length %>
         <% repair_summary_character_limit = 140 %>
         <% repair_records.each do |repair| %>
-          <% separator_characters = visible_repairs.any? ? 2 : 0 %>
-          <% break if visible_repairs.any? &&
-                      repair_summary_characters + separator_characters + repair.title.length >
+          <% repair_summary = "#{repair.title} (#{repair.created_at.strftime('%m/%d/%y')})" %>
+          <% separator_characters = visible_repair_summaries.any? ? 2 : 0 %>
+          <% break if visible_repair_summaries.any? &&
+                      repair_summary_characters + separator_characters + repair_summary.length >
                         repair_summary_character_limit %>
-          <% visible_repairs << repair %>
-          <% repair_summary_characters += separator_characters + repair.title.length %>
+          <% visible_repair_summaries << repair_summary %>
+          <% repair_summary_characters += separator_characters + repair_summary.length %>
         <% end %>
-        <% hidden_repair_count = repair_records.length - visible_repairs.length %>
+        <% hidden_repair_count = repair_records.length - visible_repair_summaries.length %>
+        <% status_label = ticket.status.titleize %>
+        <% if ticket.status == "closed" %>
+          <% status_label = "Closed - #{ticket.updated_at.strftime('%m/%d/%y')}" %>
+        <% elsif %w[assigned in_progress].include?(ticket.status) && ticket.assigned_technician.present? %>
+          <% status_label = "#{status_label} - #{ticket.assigned_technician.name}" %>
+        <% end %>
         <li class="equipment-ticket-history__item" <%= 'hidden' if index >= 5 %>
             <%= 'data-equipment-ticket-overflow' if index >= 5 %>>
           <%= link_to "##{ticket.id} / #{ticket.title}",
                       maintenance_ticket_path(ticket),
                       class: "equipment-ticket-history__ticket-link" %>
-          <span class="equipment-ticket-history__status"><%= ticket.status.humanize %></span>
+          <span class="equipment-ticket-history__status"><%= status_label %></span>
           <% if repair_records.any? %>
             <p class="equipment-ticket-history__repair-summary">
-              <strong>Repairs:</strong> <%= visible_repairs.map(&:title).join(", ") %>
+              <strong>Repairs:</strong> <%= visible_repair_summaries.join(", ") %>
             </p>
             <% if hidden_repair_count.positive? %>
               <p class="equipment-ticket-history__repair-overflow">

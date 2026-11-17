@@ -19,7 +19,7 @@ class EquipmentController < ApplicationController
 
   def show
     authorize @equipment
-    tickets = MaintenanceTicket.includes(:repair_records)
+    tickets = MaintenanceTicket.includes(:repair_records, :assigned_technician)
                                .where(equipment_id: @equipment.id)
                                .order(created_at: :desc, id: :desc)
                                .to_a
