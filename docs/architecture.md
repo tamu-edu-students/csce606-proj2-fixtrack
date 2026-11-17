@@ -34,7 +34,9 @@ MaintenanceTicket
 ## Ticket State Flow
 
 ```text
-Open -> Assigned -> In Progress -> Resolved
+Submitted -> Rejected -> Closed
+Submitted -> Rejected -> Assigned -> ...
+Submitted -> Assigned -> In Progress -> Ready for Verification -> Submitted/Closed
 ```
 
 Invalid or unauthorized transitions must be rejected with an appropriate

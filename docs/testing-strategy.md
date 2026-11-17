@@ -24,9 +24,9 @@ clear steps. Each feature should include happy and sad paths.
 Example:
 
 ```gherkin
-Scenario: Manager assigns an open ticket
+Scenario: Manager assigns a submitted ticket
   Given a manager is signed in
-  And an open ticket exists
+  And a submitted ticket exists
   When the manager assigns the ticket to a technician
   Then the ticket shows the assigned technician
 ```

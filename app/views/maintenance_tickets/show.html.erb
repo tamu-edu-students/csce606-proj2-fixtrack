@@ -1,44 +1,116 @@
+<div class="ticket-show-layout">
+  <% repair_record_error_messages = @repair_record ? @repair_record.errors.full_messages : [] %>
+  <% ticket_error_messages = @maintenance_ticket.errors.full_messages %>
+  <% if flash[:alert].present? ||
+        flash[:priority_update].present? ||
+        flash[:status_update].present? ||
+        flash[:repair_record_update].present? ||
+        repair_record_error_messages.any? || ticket_error_messages.any? %>
+    <div class="ticket-page-feedback">
+      <% if flash[:alert].present? %>
+        <p class="ticket-message ticket-message--error"
+           role="alert">
+          <%= flash[:alert] %>
+        </p>
+      <% end %>
+      <% if flash[:priority_update].present? %>
+        <p class="ticket-message ticket-message--success" role="status" data-auto-dismiss="5000">
+          <%= flash[:priority_update] %>
+        </p>
+      <% end %>
+      <% if ticket_error_messages.any? %>
+        <p class="ticket-message ticket-message--error" role="alert">
+          <%= ticket_error_messages.to_sentence %>
+        </p>
+      <% end %>
+      <% if flash[:status_update].present? %>
+        <p class="ticket-message ticket-message--success"
+           role="status"
+           data-auto-dismiss="5000">
+          <%= flash[:status_update] %>
+        </p>
+      <% end %>
+      <% if flash[:repair_record_update].present? %>
+        <p class="ticket-message ticket-message--success"
+           role="status"
+           data-auto-dismiss="5000">
+          <%= flash[:repair_record_update] %>
+        </p>
+      <% end %>
+      <% if repair_record_error_messages.any? %>
+        <p class="ticket-message ticket-message--error"
+           role="alert"
+           data-repair-validation-errors="true"
+           data-auto-dismiss="5000">
+          <%= repair_record_error_messages.to_sentence %>
+        </p>
+      <% end %>
+    </div>
+  <% end %>
 
-<h1>Maintenance Ticket Details</h1>
+  <main class="ticket-show-content">
+    <%= render "maintenance_tickets/shared_information", ticket: @maintenance_ticket %>
+    <%= render "maintenance_tickets/equipment_information", ticket: @maintenance_ticket %>
+    <%= render "maintenance_tickets/repair_records",
+               ticket: @maintenance_ticket,
+               order: @repair_records_order || "asc",
+               active_repair_panel_id: @active_repair_panel_id %>
+    <%= render "maintenance_tickets/report_another_problem" %>
+  </main>
 
-<p>
-  <strong>Ticket ID:</strong>
-  <%= @maintenance_ticket.id %>
-</p>
+  <aside class="ticket-side-panels" aria-label="Ticket actions">
+    <%= render "maintenance_tickets/status_update", ticket: @maintenance_ticket %>
 
-<p>
-  <strong>Equipment:</strong>
-  <%= @maintenance_ticket.equipment.name %>
-</p>
+    <% if @ticket_action_partials.include?("repair_record_form") %>
+      <section class="ticket-panel ticket-repair-panel" aria-label="Repair record editor">
+        <% if flash[:repair_record_update].present? %>
+          <p class="ticket-message ticket-message--success ticket-message--panel"
+             role="status"
+             data-auto-dismiss="5000">
+            <%= flash[:repair_record_update] %>
+          </p>
+        <% end %>
 
-<p>
-  <strong>Title:</strong>
-  <%= @maintenance_ticket.title %>
-</p>
+        <section data-repair-panel="add"
+                 aria-labelledby="repair-record-form-title"
+                 <%= "hidden" if @active_repair_panel_id.present? %>>
+          <%= render "maintenance_tickets/repair_record_form",
+                     ticket: @maintenance_ticket,
+                     repair_record: @new_repair_record || @maintenance_ticket.repair_records.build,
+                     add_form: true %>
+        </section>
 
-<p>
-  <strong>Problem Description:</strong>
-  <%= @maintenance_ticket.description %>
-</p>
+        <% if current_user.technician? &&
+              @maintenance_ticket.assigned_technician_id == current_user.id &&
+              %w[assigned in_progress].include?(@maintenance_ticket.status) %>
+          <% @maintenance_ticket.repair_records.order(created_at: :asc).each do |repair_record| %>
+            <% form_record = @repair_record&.id == repair_record.id ? @repair_record : repair_record %>
+            <section id="repair-record-panel-<%= repair_record.id %>"
+                     data-repair-panel="edit"
+                     data-repair-record-id="<%= repair_record.id %>"
+                     aria-labelledby="repair-record-editor-title-<%= repair_record.id %>"
+                     <%= "hidden" unless @active_repair_panel_id == repair_record.id %>>
+              <%= render "maintenance_tickets/repair_record_form",
+                         ticket: @maintenance_ticket,
+                         repair_record: form_record,
+                         heading: "Repair Details",
+                         heading_id: "repair-record-editor-title-#{repair_record.id}",
+                         form_namespace: "repair-record-#{repair_record.id}",
+                         panel_edit: true,
+                         submit_label: "Save changes" %>
+              <button type="button"
+                      data-repair-panel-cancel
+                      class="ticket-repair-history__cancel">
+                Cancel
+              </button>
+            </section>
+          <% end %>
+        <% end %>
+      </section>
+    <% end %>
 
-<p>
-  <strong>Priority:</strong>
-  <%= @maintenance_ticket.priority.humanize %>
-</p>
-
-<p>
-  <strong>Status:</strong>
-  <%= @maintenance_ticket.status.humanize %>
-</p>
-
-<p>
-  <strong>Reported By:</strong>
-  <%= @maintenance_ticket.reporter.name %>
-</p>
-
-<p>
-  <strong>Reported At:</strong>
-  <%= @maintenance_ticket.created_at.strftime("%B %d, %Y %I:%M %p") %>
-</p>
-
-<%= link_to "Report Another Problem", new_maintenance_ticket_path %>
+    <% @ticket_action_partials.reject { |partial| partial == "repair_record_form" }.each do |partial| %>
+      <%= render "maintenance_tickets/#{partial}", ticket: @maintenance_ticket %>
+    <% end %>
+  </aside>
+</div>

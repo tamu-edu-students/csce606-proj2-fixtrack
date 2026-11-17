@@ -1,0 +1,47 @@
+<section class="ticket-panel ticket-details" aria-labelledby="ticket-details-title">
+  <div class="ticket-details__header">
+    <h1 id="ticket-details-title">#<%= ticket.id %> / <%= ticket.title %></h1>
+
+    <div class="ticket-details__priority ticket-details__priority--<%= ticket.priority %>"
+         role="img"
+         aria-label="Priority: <%= ticket.priority.to_s.humanize %>">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M5 3v18M5 4c4-3 10 3 14 0v10c-4 3-10-3-14 0" />
+      </svg>
+      <span aria-hidden="true"><%= ticket.priority.to_s.humanize %></span>
+    </div>
+  </div>
+
+  <dl class="ticket-details__list">
+    <div class="ticket-details__metadata-row ticket-details__metadata-row--secondary">
+      <div class="ticket-details__metadata-item">
+        <dt>Reported By:</dt>
+        <dd><%= ticket.reporter.name %></dd>
+      </div>
+      <div class="ticket-details__metadata-item">
+        <dt>Created:</dt>
+        <dd>
+          <time datetime="<%= ticket.created_at&.iso8601 %>" data-local-time="long">
+            <%= ticket.created_at&.to_fs(:long) %>
+          </time>
+        </dd>
+      </div>
+    </div>
+  </dl>
+
+  <section class="ticket-details__issue" aria-labelledby="ticket-issue-title">
+    <h2 id="ticket-issue-title">Issue Description</h2>
+    <p><%= ticket.description %></p>
+  </section>
+
+  <dl class="ticket-details__last-updated">
+    <div class="ticket-details__metadata-item">
+      <dt>Last Updated</dt>
+      <dd>
+        <time datetime="<%= ticket.updated_at&.iso8601 %>" data-local-time="long">
+          <%= ticket.updated_at&.to_fs(:long) %>
+        </time>
+      </dd>
+    </div>
+  </dl>
+</section>

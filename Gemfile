@@ -7,7 +7,7 @@ gem "propshaft"
 # Use sqlite3 as the database for Active Record
 gem "sqlite3", ">= 2.1"
 # Use the Puma web server [https://github.com/puma/puma]
-gem "puma", ">= 5.0"
+gem "puma", "~> 8.0.3"
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
 gem "importmap-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
@@ -59,6 +59,7 @@ gem "rspec-rails", "~> 8.0", groups: [ :development, :test ]
 gem "cucumber-rails", "~> 4.1", groups: [ :development, :test ]
 
 gem "simplecov", "~> 1.3", group: :test
+gem "database_cleaner-active_record", "~> 2.2", group: :test, require: "database_cleaner/active_record"
 
 gem "devise", "~> 5.0"
 

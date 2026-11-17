@@ -1,5 +1,11 @@
 # User Guide
 
+## Equipment management
+
+See [Equipment management](equipment-management.md) for the draft CRUD workflow,
+permissions, proposed statuses and authentication integration requirements.
+This feature remains a development draft until its dependencies are integrated.
+
 > **Status:** Placeholder. Add screenshots and verified workflows after the
 > corresponding features are implemented.
 
@@ -44,7 +50,7 @@ Your workflow is to report and verify equipment problems:
 1. Find the equipment and open a ticket describing the problem.
 2. View the progress of your submitted ticket.
 3. Review the repair after the Technician sends it back.
-4. Mark the ticket resolved if the problem is fixed, or reopen it with a
+4. Mark the ticket closed if the problem is fixed, or reopen it with a
    reason if more work is needed.
 
 ## Overall Ticket Flow

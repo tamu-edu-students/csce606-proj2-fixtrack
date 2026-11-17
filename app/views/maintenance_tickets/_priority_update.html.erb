@@ -1,0 +1,28 @@
+<section class="ticket-panel ticket-priority-update" aria-labelledby="ticket-priority-update-title">
+  <h2 id="ticket-priority-update-title">Change priority</h2>
+
+  <% if flash[:priority_update].present? %>
+    <p class="ticket-message ticket-message--success ticket-message--panel"
+       role="status" data-auto-dismiss="5000">
+      <%= flash[:priority_update] %>
+    </p>
+  <% end %>
+
+  <% if ticket.errors[:priority].any? %>
+    <p id="ticket-priority-errors"
+       class="ticket-message ticket-message--error ticket-message--panel" role="alert">
+      <%= ticket.errors.full_messages_for(:priority).to_sentence %>
+    </p>
+  <% end %>
+
+  <%= form_with model: ticket, url: priority_maintenance_ticket_path(ticket), method: :patch do |form| %>
+    <%= form.label :priority, "Priority" %>
+    <%= form.select :priority,
+                    [["Low", "low"], ["Medium", "medium"], ["High", "high"]],
+                    { include_blank: "Select priority" },
+                    { required: true,
+                      "aria-invalid": ticket.errors[:priority].any?,
+                      "aria-describedby": ("ticket-priority-errors" if ticket.errors[:priority].any?) } %>
+    <%= form.submit "Update priority" %>
+  <% end %>
+</section>

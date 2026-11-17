@@ -1,0 +1,49 @@
+<div class="ticket-show-layout">
+  <main class="ticket-show-content">
+    <h1>Edit repair record</h1>
+    <%= link_to "Back to ticket", maintenance_ticket_path(@maintenance_ticket) %>
+  </main>
+
+  <aside class="ticket-repair-panel" aria-labelledby="repair-record-form-title">
+    <%= render "maintenance_tickets/repair_record_form",
+               ticket: @maintenance_ticket,
+               repair_record: @repair_record,
+               heading: "Repair details",
+               submit_label: "Save changes" %>
+    <div class="ticket-repair-history__actions">
+      <div class="ticket-repair-history__action-links" data-repair-actions>
+        <%= link_to "Delete",
+                    "#",
+                    data: { repair_delete_start: true },
+                    aria: {
+                      controls: "repair-delete-confirmation-#{@repair_record.id}",
+                      expanded: false,
+                      label: "Delete #{@repair_record.title}"
+                    },
+                    class: "ticket-repair-history__action ticket-repair-history__delete" %>
+      </div>
+      <div id="repair-delete-confirmation-<%= @repair_record.id %>"
+           class="ticket-repair-history__delete-confirmation"
+           data-repair-delete-confirmation
+           role="group"
+           aria-label="Confirm repair deletion"
+           aria-live="polite"
+           hidden>
+        <span>Delete this repair record?</span>
+        <%= form_with url: maintenance_ticket_repair_record_path(@maintenance_ticket, @repair_record),
+                      method: :delete,
+                      class: "ticket-repair-history__delete-form" do %>
+          <%= link_to "Confirm",
+                      "#",
+                      data: { repair_record_delete: true },
+                      aria: { label: "Confirm deletion of #{@repair_record.title}" },
+                      class: "ticket-repair-history__action ticket-repair-history__delete" %>
+        <% end %>
+        <%= link_to "Cancel",
+                    "#",
+                    data: { repair_delete_cancel: true },
+                    class: "ticket-repair-history__action" %>
+      </div>
+    </div>
+  </aside>
+</div>
