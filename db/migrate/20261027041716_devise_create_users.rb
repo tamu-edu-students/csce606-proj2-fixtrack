@@ -14,7 +14,7 @@ class DeviseCreateUsers < ActiveRecord::Migration[8.1]
       ## Rememberable
       t.datetime :remember_created_at
       ## User role
-      t.string :role, default: "technician", null: false
+      ##t.string :role, default: "technician", null: false
       ## Company reference
       ##t.references :company, null: false, foreign_key: true
       ## Trackable
