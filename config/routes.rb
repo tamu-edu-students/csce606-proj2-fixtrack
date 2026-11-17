@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   devise_for :users
   resources :maintenance_tickets, path: "issues", only: %i[index new create show] do
     patch :priority, on: :member, to: "maintenance_tickets#update_priority"
+    patch :assignment, on: :member, to: "maintenance_tickets#update_assignment"
     resources :repair_records, only: %i[create edit update destroy]
   end
 

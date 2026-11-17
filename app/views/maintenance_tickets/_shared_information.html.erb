@@ -13,6 +13,10 @@
   </div>
 
   <dl class="ticket-details__list">
+    <div class="ticket-details__metadata-item ticket-details__assignee">
+      <dt>Assigned technician:</dt>
+      <dd><%= ticket.assigned_technician&.name || "Unassigned" %></dd>
+    </div>
     <div class="ticket-details__metadata-row ticket-details__metadata-row--secondary">
       <div class="ticket-details__metadata-item">
         <dt>Reported By:</dt>

@@ -2,7 +2,6 @@ class MaintenanceTicketsController < ApplicationController
   TECHNICIAN_VISIBLE_STATUSES = %w[assigned in_progress].freeze
   STATUSES_BEFORE_REPAIR = MaintenanceTicket::STATUSES_BEFORE_REPAIR
   TICKET_ACTION_PARTIALS = {
-    "manager" => %w[technician_assignment].freeze,
     "technician" => %w[repair_record_form].freeze
   }.freeze
 
@@ -54,6 +53,27 @@ class MaintenanceTicketsController < ApplicationController
     render plain: "You are not allowed to update ticket priority.", status: :forbidden
   end
 
+  def update_assignment
+    @maintenance_ticket = MaintenanceTicket.find(params[:id])
+    authorize @maintenance_ticket, :update_assignment?
+
+    if @maintenance_ticket.update_assignment(assignment_params[:assigned_technician_id])
+      redirect_to maintenance_ticket_path(@maintenance_ticket),
+                  status: :see_other,
+                  flash: { technician_assignment: "Ticket technician assignment updated successfully." }
+    else
+      # Keep the persisted selection/status visible while retaining validation feedback.
+      assignment_errors = @maintenance_ticket.errors.dup
+      @maintenance_ticket.reload
+      @maintenance_ticket.errors.merge!(assignment_errors)
+      # Rebuild the detail page without show's status-normalization side effect.
+      prepare_ticket_details
+      render :show, status: :unprocessable_entity
+    end
+  rescue Pundit::NotAuthorizedError
+    render plain: "You are not allowed to change ticket assignments.", status: :forbidden
+  end
+
   def update_status
     ticket = MaintenanceTicket.find(params[:id])
     requested_status = params[:status]
@@ -98,6 +118,10 @@ class MaintenanceTicketsController < ApplicationController
     @ticket_action_partials = TICKET_ACTION_PARTIALS.fetch(current_user.role, []).dup
     # Priority access includes Admins, so use the same policy as the endpoint.
     @ticket_action_partials.unshift("priority_update") if policy(@maintenance_ticket).update_priority?
+    if policy(@maintenance_ticket).update_assignment?
+      @ticket_action_partials.unshift("technician_assignment")
+      @eligible_technicians = User.where(role: "technician").order(:name, :email, :id)
+    end
     if current_user.technician? &&
        @maintenance_ticket.assigned_technician_id != current_user.id
       @ticket_action_partials = []
@@ -107,6 +131,16 @@ class MaintenanceTicketsController < ApplicationController
   def priority_params
     # Require the nested priority payload; leave blank-value checks to the model.
     params.expect(maintenance_ticket: [ :priority ])
+  end
+
+  def assignment_params
+    permitted = params.expect(maintenance_ticket: [ :assigned_technician_id ])
+    # A missing field is malformed; an explicit nil or blank requests clearing.
+    unless permitted.key?(:assigned_technician_id)
+      raise ActionController::ParameterMissing, :assigned_technician_id
+    end
+
+    permitted
   end
 
   def normalize_status_for_repair_records(ticket)

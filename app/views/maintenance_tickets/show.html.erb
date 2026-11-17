@@ -5,8 +5,14 @@
         flash[:priority_update].present? ||
         flash[:status_update].present? ||
         flash[:repair_record_update].present? ||
+        flash[:technician_assignment].present? ||
         repair_record_error_messages.any? || ticket_error_messages.any? %>
     <div class="ticket-page-feedback">
+      <% if flash[:technician_assignment].present? %>
+        <p class="ticket-message ticket-message--success" role="status" data-auto-dismiss="5000">
+          <%= flash[:technician_assignment] %>
+        </p>
+      <% end %>
       <% if flash[:alert].present? %>
         <p class="ticket-message ticket-message--error"
            role="alert">

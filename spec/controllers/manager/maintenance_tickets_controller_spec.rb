@@ -66,7 +66,7 @@ RSpec.describe "Manager ticket queue controller" do
         status, _headers, body = get_queue
 
         expect(status).to eq(200)
-        expect(body).to include("Manager ticket queue", "No submitted tickets.")
+        expect(body).to include("Manager ticket queue", "No active tickets.")
       end
     end
   end
@@ -181,7 +181,7 @@ RSpec.describe "Manager ticket queue controller" do
     expect(document.css('nav[aria-label="Ticket queue pages"]')).to be_empty
   end
 
-  { "submitted" => "No submitted tickets.", "closed" => "No closed tickets.", "all" => "No tickets yet." }.each do |filter, message|
+  { "submitted" => "No active tickets.", "closed" => "No closed tickets.", "all" => "No tickets yet." }.each do |filter, message|
     it "explains empty results for the #{filter} filter" do
       allow(query).to receive(:status).and_return(filter)
       html = document

@@ -1,1 +1,40 @@
-<%# Placeholder for the manager technician assignment controls. %>
+<section class="ticket-panel ticket-technician-assignment" aria-labelledby="ticket-technician-assignment-title">
+  <h2 id="ticket-technician-assignment-title">Assign technician</h2>
+
+  <% if flash[:technician_assignment].present? %>
+    <p class="ticket-message ticket-message--success ticket-message--panel"
+       role="status" data-auto-dismiss="5000">
+      <%= flash[:technician_assignment] %>
+    </p>
+  <% end %>
+
+  <% if ticket.assignment_allowed? %>
+    <% assignment_errors = ticket.errors.full_messages_for(:assigned_technician) %>
+    <% if assignment_errors.any? %>
+      <p id="ticket-assignment-errors"
+         class="ticket-message ticket-message--error ticket-message--panel" role="alert">
+        <%= assignment_errors.to_sentence %>
+      </p>
+    <% end %>
+
+    <% technicians = @eligible_technicians || [] %>
+    <% assignment_disabled = technicians.empty? && ticket.assigned_technician_id.nil? %>
+    <% if technicians.empty? %>
+      <p>No technicians are available for assignment.</p>
+    <% end %>
+    <p id="ticket-assignment-help">Choose Unassigned to clear the current assignment.</p>
+
+    <%= form_with model: ticket, url: assignment_maintenance_ticket_path(ticket), method: :patch do |form| %>
+      <%= form.label :assigned_technician_id, "Technician" %>
+      <%= form.select :assigned_technician_id,
+                      technicians.map { |technician| ["#{technician.name} (#{technician.email})", technician.id] },
+                      { include_blank: "Unassigned" },
+                      { disabled: assignment_disabled,
+                        "aria-invalid": assignment_errors.any?,
+                        "aria-describedby": ["ticket-assignment-help", ("ticket-assignment-errors" if assignment_errors.any?)].compact.join(" ") } %>
+      <%= form.submit "Update assignment", disabled: assignment_disabled %>
+    <% end %>
+  <% else %>
+    <p>Assignments can only be changed for submitted, assigned, or in-progress tickets.</p>
+  <% end %>
+</section>
