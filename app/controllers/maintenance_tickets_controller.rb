@@ -19,6 +19,7 @@ class MaintenanceTicketsController < ApplicationController
 
   def create
     @maintenance_ticket = MaintenanceTicket.new(ticket_params)
+    @maintenance_ticket.status = "submitted"
     @maintenance_ticket.reporter = current_user
 
     if @maintenance_ticket.save

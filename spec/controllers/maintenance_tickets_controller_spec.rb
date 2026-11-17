@@ -211,6 +211,7 @@ RSpec.describe MaintenanceTicketsController do
       end
       allow(MaintenanceTicket).to receive(:new).and_return(ticket)
 
+      expect(ticket).to receive(:status=).with("submitted")
       expect(ticket).to receive(:reporter=).with(technician)
       expect(maintenance_tickets_controller).to receive(:redirect_to).with(
         ticket,
