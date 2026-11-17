@@ -146,6 +146,7 @@
 }
 
 .ticket-equipment-panel__list dt,
+.ticket-details__assignee dt,
 .ticket-details__metadata-row--secondary dt {
   font-weight: 600;
 }
@@ -205,6 +206,7 @@
 }
 
 .ticket-repair-panel label,
+.ticket-technician-assignment label,
 .ticket-priority-update label {
   display: block;
   margin-bottom: 0.25rem;
@@ -213,6 +215,7 @@
 .ticket-repair-panel textarea,
 .ticket-repair-panel input[type="text"],
 .ticket-status-update select,
+.ticket-technician-assignment select,
 .ticket-priority-update select {
   box-sizing: border-box;
   width: 100%;
@@ -223,6 +226,7 @@
 
 .ticket-repair-panel input[type="text"],
 .ticket-status-update select,
+.ticket-technician-assignment select,
 .ticket-priority-update select {
   font-family: inherit;
   font-size: inherit;

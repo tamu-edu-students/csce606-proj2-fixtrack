@@ -39,6 +39,98 @@ RSpec.describe "Ticket technician assignment", type: :request do
         log_in(user)
       end
 
+      it "renders a labeled assignment form with only technicians and the current selection" do
+        ticket.update!(status: "assigned", assigned_technician: technician)
+        replacement.update!(name: technician.name)
+
+        get maintenance_ticket_path(ticket)
+
+        expect(response).to have_http_status(:ok)
+        html = Nokogiri::HTML(response.body)
+        panel = html.at_css(".ticket-side-panels .ticket-technician-assignment")
+        expect(panel.next_element["class"]).to include("ticket-priority-update")
+        form = panel.at_css("form")
+        selector = form.at_css("select[name='maintenance_ticket[assigned_technician_id]']")
+        expect(panel.at_css("label")["for"]).to eq(selector["id"])
+        expect(form["action"]).to eq(assignment_maintenance_ticket_path(ticket))
+        expect(form.at_css("input[name='_method']")["value"]).to eq("patch")
+        expect(selector.css("option").map { |option| option["value"] })
+          .to eq([ "", replacement.id.to_s, technician.id.to_s ])
+        expect(selector.css("option").map(&:text)).to eq(
+          [ "Unassigned", "#{replacement.name} (#{replacement.email})", "#{technician.name} (#{technician.email})" ]
+        )
+        expect(selector.at_css("option[selected]")["value"]).to eq(technician.id.to_s)
+        expect(selector["required"]).to be_nil
+        expect(selector["disabled"]).to be_nil
+        expect(html.at_css(".ticket-details__assignee dd").text).to eq(technician.name)
+        expect(html.at_css(".ticket-status-update")).to be_present
+        expect(html.at_css(".ticket-priority-update")).to be_present
+        expect(panel.at_css("[role='status']")).to be_nil
+      end
+
+      it "shows unassigned details and keeps login feedback out of assignment feedback" do
+        get maintenance_ticket_path(ticket)
+
+        html = Nokogiri::HTML(response.body)
+        expect(html.at_css(".ticket-details__assignee dd").text).to eq("Unassigned")
+        expect(html.at_css(".ticket-technician-assignment [role='status']")).to be_nil
+        expect(html.at_css(".ticket-page-feedback [role='status']")).to be_nil
+      end
+
+      it "shows dedicated success feedback and the saved assignee after redirect" do
+        assign_technician(technician.id)
+        follow_redirect!
+
+        expect(response).to have_http_status(:ok)
+        html = Nokogiri::HTML(response.body)
+        expect(html.at_css(".ticket-details__assignee dd").text).to eq(technician.name)
+        [ ".ticket-technician-assignment", ".ticket-page-feedback" ].each do |container|
+          expect(html.at_css("#{container} [role='status']").text)
+            .to include("Ticket technician assignment updated successfully.")
+        end
+        expect(html.at_css(".ticket-priority-update [role='status']")).to be_nil
+      end
+
+      it "shows Unassigned after clearing through the form endpoint" do
+        ticket.update!(status: "assigned", assigned_technician: technician)
+
+        assign_technician("")
+        follow_redirect!
+
+        expect(response).to have_http_status(:ok)
+        html = Nokogiri::HTML(response.body)
+        expect(html.at_css(".ticket-details__assignee dd").text).to eq("Unassigned")
+        selector = html.at_css(".ticket-technician-assignment select")
+        expect(selector.at_css("option[value='']").text).to eq("Unassigned")
+        expect(selector.css("option[selected]").map { |option| option["value"] }).to be_empty
+        expect(ticket.reload.status).to eq("submitted")
+      end
+
+      it "explains when no technicians are available and disables the empty form" do
+        technician.destroy!
+
+        get maintenance_ticket_path(ticket)
+
+        expect(response).to have_http_status(:ok)
+        panel = Nokogiri::HTML(response.body).at_css(".ticket-technician-assignment")
+        expect(panel.text).to include("No technicians are available for assignment.")
+        expect(panel.at_css("select")["disabled"]).to be_present
+        expect(panel.at_css("input[type='submit']")["disabled"]).to be_present
+      end
+
+      %w[rejected ready_for_verification closed].each do |status|
+        it "explains the restriction instead of offering a form in #{status}" do
+          ticket.update!(status: status)
+
+          get maintenance_ticket_path(ticket)
+
+          expect(response).to have_http_status(:ok)
+          panel = Nokogiri::HTML(response.body).at_css(".ticket-technician-assignment")
+          expect(panel.text).to include("Assignments can only be changed")
+          expect(panel.at_css("form")).to be_nil
+        end
+      end
+
       it "persists initial assignment and status and redirects with dedicated feedback" do
         original_attributes = ticket.attributes.except("assigned_technician_id", "status", "updated_at")
 
@@ -112,6 +204,14 @@ RSpec.describe "Ticket technician assignment", type: :request do
             expect(html.at_css(".ticket-repair-history")).to be_present
             expect(html.at_css(".ticket-status-update")).to be_present
             expect(html.at_css(".ticket-priority-update")).to be_present
+            selector = html.at_css(".ticket-technician-assignment select")
+            expect(selector["aria-invalid"]).to eq("true")
+            expect(selector["aria-describedby"].split).to include("ticket-assignment-errors")
+            expect(html.at_css("#ticket-assignment-errors").text).to include("must be an existing technician")
+            expected_name = operation == :reassignment ? technician.name : "Unassigned"
+            expect(html.at_css(".ticket-details__assignee dd").text).to eq(expected_name)
+            expected_ids = operation == :reassignment ? [ technician.id.to_s ] : []
+            expect(selector.css("option[selected]").map { |option| option["value"] }).to eq(expected_ids)
             expect(flash[:technician_assignment]).to be_nil
             expect(ticket.reload.attributes).to eq(original_attributes)
           end
@@ -201,6 +301,19 @@ RSpec.describe "Ticket technician assignment", type: :request do
           expect(response).to have_http_status(:forbidden)
           expect(ticket.reload.attributes).to eq(original_attributes)
         end
+      end
+
+      it "shows the assigned technician without assignment controls" do
+        ticket.update!(status: "assigned", assigned_technician: technician)
+
+        get maintenance_ticket_path(ticket)
+
+        expect(response).to have_http_status(:ok)
+        html = Nokogiri::HTML(response.body)
+        expect(html.at_css(".ticket-details__assignee dd").text).to eq(technician.name)
+        expect(html.at_css(".ticket-technician-assignment")).to be_nil
+        expect(html.at_css(".ticket-status-update")).to be_present
+        expect(html.at_css("form[data-repair-add-form]")).to be_present if role == "technician"
       end
 
       it "authorizes before attempting parameter validation" do

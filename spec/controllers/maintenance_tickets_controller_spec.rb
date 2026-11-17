@@ -135,7 +135,7 @@ RSpec.describe MaintenanceTicketsController do
       maintenance_tickets_controller.show
 
       expect(maintenance_tickets_controller.instance_variable_get(:@ticket_action_partials))
-        .to eq(%w[priority_update technician_assignment])
+        .to eq(%w[technician_assignment priority_update])
     end
 
     it "does not assign role-specific action partials to reporters" do

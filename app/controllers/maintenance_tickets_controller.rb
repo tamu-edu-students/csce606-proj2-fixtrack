@@ -2,7 +2,6 @@ class MaintenanceTicketsController < ApplicationController
   TECHNICIAN_VISIBLE_STATUSES = %w[assigned in_progress].freeze
   STATUSES_BEFORE_REPAIR = MaintenanceTicket::STATUSES_BEFORE_REPAIR
   TICKET_ACTION_PARTIALS = {
-    "manager" => %w[technician_assignment].freeze,
     "technician" => %w[repair_record_form].freeze
   }.freeze
 
@@ -62,6 +61,10 @@ class MaintenanceTicketsController < ApplicationController
                   status: :see_other,
                   flash: { technician_assignment: "Ticket technician assignment updated successfully." }
     else
+      # Keep the persisted selection/status visible while retaining validation feedback.
+      assignment_errors = @maintenance_ticket.errors.dup
+      @maintenance_ticket.reload
+      @maintenance_ticket.errors.merge!(assignment_errors)
       # Rebuild the detail page without show's status-normalization side effect.
       prepare_ticket_details
       render :show, status: :unprocessable_entity
@@ -114,6 +117,10 @@ class MaintenanceTicketsController < ApplicationController
     @ticket_action_partials = TICKET_ACTION_PARTIALS.fetch(current_user.role, []).dup
     # Priority access includes Admins, so use the same policy as the endpoint.
     @ticket_action_partials.unshift("priority_update") if policy(@maintenance_ticket).update_priority?
+    if policy(@maintenance_ticket).update_assignment?
+      @ticket_action_partials.unshift("technician_assignment")
+      @eligible_technicians = User.where(role: "technician").order(:name, :email, :id)
+    end
     if current_user.technician? &&
        @maintenance_ticket.assigned_technician_id != current_user.id
       @ticket_action_partials = []

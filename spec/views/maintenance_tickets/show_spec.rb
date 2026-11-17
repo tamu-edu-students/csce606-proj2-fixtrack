@@ -416,7 +416,7 @@ RSpec.describe "maintenance_tickets/show", type: :view do
 
   it "renders shared details and the controller-selected action partials on the show page" do
     assign(:maintenance_ticket, ticket)
-    assign(:ticket_action_partials, %w[priority_update technician_assignment])
+    assign(:ticket_action_partials, %w[technician_assignment priority_update])
     allow(view).to receive(:render).and_call_original
 
     render template: "maintenance_tickets/show"
