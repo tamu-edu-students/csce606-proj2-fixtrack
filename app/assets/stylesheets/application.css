@@ -115,6 +115,11 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.ticket-details__metadata-stack {
+  display: grid;
+  gap: 0.5rem;
+}
+
 .ticket-details__metadata-item {
   display: flex;
   flex-wrap: wrap;
@@ -155,8 +160,83 @@
   overflow-wrap: anywhere;
 }
 
+.equipment-ticket-history {
+  margin: 1.5rem 0;
+}
+
+.equipment-ticket-history h2 {
+  margin: 0 0 1rem;
+}
+
+.equipment-ticket-history__list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.equipment-ticket-history__item {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  overflow-wrap: anywhere;
+}
+
+.equipment-ticket-history__ticket-link {
+  font-weight: 600;
+}
+
+.equipment-ticket-history__status {
+  margin-left: 0.5rem;
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+.equipment-ticket-history__repair-summary {
+  margin: 0.35rem 0 0;
+  overflow-wrap: anywhere;
+  font-size: 0.925rem;
+}
+
+.equipment-ticket-history__repair-overflow,
+.equipment-ticket-history__empty-repairs {
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+.equipment-ticket-history__repair-overflow {
+  display: flex;
+  gap: 0.4rem;
+  align-items: baseline;
+  margin: 0.35rem 0 0;
+}
+
+.equipment-ticket-history__empty-repairs {
+  margin: 0.35rem 0 0;
+}
+
+.equipment-ticket-history__toggle {
+  margin-top: 0.75rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid #0759a5;
+  border-radius: 0.25rem;
+  background: #fff;
+  color: #0759a5;
+  cursor: pointer;
+}
+
+.equipment-ticket-history__toggle:hover {
+  background: #f0f7ff;
+}
+
+.equipment-ticket-history [hidden] {
+  display: none;
+}
+
 .ticket-details__issue {
   margin-top: 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid #e5e7eb;
 }
 
 .ticket-details__issue p {
@@ -164,19 +244,10 @@
   overflow-wrap: anywhere;
 }
 
-.ticket-details__last-updated {
-  display: grid;
-  margin: 1rem 0 0;
-  font-size: 0.875rem;
-}
-
-.ticket-details__last-updated dt {
-  font-weight: normal;
-}
-
-.ticket-details__last-updated dd {
-  margin: 0;
-  overflow-wrap: anywhere;
+.ticket-status-update__last-updated {
+  margin: 0.75rem 0 0;
+  color: #6b7280;
+  font-size: 0.75rem;
 }
 
 .ticket-message {
@@ -216,7 +287,6 @@
 .ticket-priority-update select {
   box-sizing: border-box;
   width: 100%;
-  height: var(--ticket-control-height);
   margin-bottom: 1rem;
   padding: 0.5rem;
 }
@@ -224,6 +294,7 @@
 .ticket-repair-panel input[type="text"],
 .ticket-status-update select,
 .ticket-priority-update select {
+  height: var(--ticket-control-height);
   font-family: inherit;
   font-size: inherit;
   font-weight: normal;
@@ -237,6 +308,22 @@
   margin: 0 0 1rem;
   font-size: inherit;
   font-weight: normal;
+}
+
+.ticket-status-update__closure-confirmation {
+  margin: 0 0 1rem;
+  padding: 0.75rem;
+  border-left: 0.25rem solid #b54708;
+  background: #fffaeb;
+  color: #7a2e0e;
+}
+
+.ticket-status-update__closure-confirmation p {
+  margin: 0 0 0.5rem;
+}
+
+.ticket-status-update__closure-confirmation label {
+  margin-left: 0.35rem;
 }
 
 .ticket-status-update__confirmation {

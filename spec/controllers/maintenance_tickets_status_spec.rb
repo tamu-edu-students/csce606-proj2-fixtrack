@@ -38,6 +38,15 @@ RSpec.describe MaintenanceTicketsController do
     expect(controller.status_options_for(manager, ticket)).not_to include("closed")
   end
 
+  it "does not offer status edits for closed tickets to any role" do
+    ticket.status = "closed"
+    ticket.reporter_id = reporter.id
+
+    [ manager, technician, reporter ].each do |user|
+      expect(controller.status_options_for(user, ticket)).to be_empty
+    end
+  end
+
   it "allows assigned technicians to set assigned, in-progress, or ready-for-verification" do
     expect(controller.status_options_for(technician, ticket))
       .to eq(%w[assigned in_progress ready_for_verification])
@@ -63,11 +72,11 @@ RSpec.describe MaintenanceTicketsController do
       .to eq(%w[assigned in_progress ready_for_verification closed])
   end
 
-  it "allows a technician creator to close their ticket even when not assigned" do
+  it "does not allow an unassigned technician to update a ticket they reported" do
     ticket.assigned_technician_id = nil
     ticket.reporter_id = technician.id
 
-    expect(controller.status_options_for(technician, ticket)).to eq([ "closed" ])
+    expect(controller.status_options_for(technician, ticket)).to be_empty
   end
 
   it "does not allow a technician who did not create the ticket to update it when unassigned" do
@@ -82,6 +91,12 @@ RSpec.describe MaintenanceTicketsController do
 
   it "allows the reporting user to resubmit a rejected ticket" do
     ticket.status = "rejected"
+
+    expect(controller.status_options_for(reporter, ticket)).to eq(%w[submitted closed])
+  end
+
+  it "offers Submitted for a reporter's ticket that is already submitted" do
+    ticket.status = "submitted"
 
     expect(controller.status_options_for(reporter, ticket)).to eq(%w[submitted closed])
   end
@@ -101,16 +116,21 @@ RSpec.describe MaintenanceTicketsController do
     before do
       controller.define_singleton_method(:current_user) { current_user_for_update }
       controller.define_singleton_method(:params) do
-        ActionController::Parameters.new(id: "12", status: requested_status_for_update)
+        ActionController::Parameters.new(
+          id: "12",
+          status: requested_status_for_update,
+          confirm_closure: closure_confirmation_for_update
+        )
       end
       controller.define_singleton_method(:maintenance_ticket_path) { |record| "/issues/#{record.id}" }
       allow(MaintenanceTicket).to receive(:find).with("12").and_return(ticket)
       allow(controller).to receive(:redirect_to)
     end
 
-    def update_status_as(user, status)
+    def update_status_as(user, status, confirm_closure: nil)
       controller.define_singleton_method(:current_user_for_update) { user }
       controller.define_singleton_method(:requested_status_for_update) { status }
+      controller.define_singleton_method(:closure_confirmation_for_update) { confirm_closure }
       controller.update_status
     end
 
@@ -132,6 +152,14 @@ RSpec.describe MaintenanceTicketsController do
       update_status_as(manager, "assigned")
     end
 
+    it "does not update a reporter's ticket when they keep it submitted" do
+      ticket.status = "submitted"
+      expect(ticket).not_to receive(:update)
+      expect(controller).to receive(:redirect_to).with("/issues/12")
+
+      update_status_as(reporter, "submitted")
+    end
+
     it "rejects a manager closing a ticket they did not create" do
       expect(ticket).not_to receive(:update)
       expect(controller).to receive(:redirect_to).with(
@@ -148,6 +176,17 @@ RSpec.describe MaintenanceTicketsController do
       expect(controller).to receive(:redirect_to).with(
         "/issues/12",
         flash: { status_update: "Moved status from Assigned to Closed" }
+      )
+
+      update_status_as(manager, "closed", confirm_closure: "1")
+    end
+
+    it "requires confirmation before closing an eligible ticket" do
+      ticket.reporter_id = manager.id
+      expect(ticket).not_to receive(:update)
+      expect(controller).to receive(:redirect_to).with(
+        "/issues/12",
+        alert: "Closing this ticket cannot be undone. Confirm closure to continue."
       )
 
       update_status_as(manager, "closed")
@@ -174,16 +213,38 @@ RSpec.describe MaintenanceTicketsController do
       update_status_as(technician, "in_progress")
     end
 
-    it "allows a technician creator to close their own ticket even when unassigned" do
+    it "does not allow an unassigned technician to change the status of their own ticket" do
       ticket.assigned_technician_id = nil
       ticket.reporter_id = technician.id
-      expect(ticket).to receive(:update).with(status: "closed").and_return(true)
+      expect(ticket).not_to receive(:update)
       expect(controller).to receive(:redirect_to).with(
         "/issues/12",
-        flash: { status_update: "Moved status from Assigned to Closed" }
+        alert: "You are not allowed to set this status."
       )
 
       update_status_as(technician, "closed")
+    end
+
+    it "does not allow a technician to update a ticket outside an editable status" do
+      ticket.status = "ready_for_verification"
+      expect(ticket).not_to receive(:update)
+      expect(controller).to receive(:redirect_to).with(
+        "/issues/12",
+        alert: "You are not allowed to set this status."
+      )
+
+      update_status_as(technician, "in_progress")
+    end
+
+    it "does not allow changing a closed ticket's status" do
+      ticket.status = "closed"
+      expect(ticket).not_to receive(:update)
+      expect(controller).to receive(:redirect_to).with(
+        "/issues/12",
+        alert: "You are not allowed to set this status."
+      )
+
+      update_status_as(manager, "assigned")
     end
 
     it "allows a reporter to close a ticket they created" do
@@ -193,7 +254,7 @@ RSpec.describe MaintenanceTicketsController do
         flash: { status_update: "Moved status from Assigned to Closed" }
       )
 
-      update_status_as(reporter, "closed")
+      update_status_as(reporter, "closed", confirm_closure: "1")
     end
 
     it "allows the reporting user to resubmit a rejected ticket" do

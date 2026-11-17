@@ -11,6 +11,12 @@ class RepairRecordsController < ApplicationController
     @maintenance_ticket = MaintenanceTicket
       .where(assigned_technician: current_user)
       .find(params[:maintenance_ticket_id])
+    unless MaintenanceTicket::TECHNICIAN_EDITABLE_STATUSES.include?(@maintenance_ticket.status)
+      redirect_to maintenance_ticket_path(@maintenance_ticket),
+                  alert: "Repair records can only be added while the ticket is assigned or in progress."
+      return
+    end
+
     @repair_record = @maintenance_ticket.repair_records.build(repair_record_params)
     @repair_record.technician = current_user
 
@@ -92,7 +98,7 @@ class RepairRecordsController < ApplicationController
       .where(assigned_technician: current_user)
       .find(params[:maintenance_ticket_id])
 
-    return true if %w[assigned in_progress].include?(@maintenance_ticket.status)
+    return true if MaintenanceTicket::TECHNICIAN_EDITABLE_STATUSES.include?(@maintenance_ticket.status)
 
     redirect_to maintenance_ticket_path(@maintenance_ticket),
                 alert: "Repair records can only be changed while the ticket is assigned or in progress."

@@ -4,7 +4,7 @@ require_relative "../../app/policies/maintenance_ticket_policy"
 RSpec.describe MaintenanceTicketPolicy do
   subject(:policy) { described_class.new(user, ticket) }
 
-  let(:ticket) { Object.new }
+  let(:ticket) { Struct.new(:status).new("assigned") }
   let(:user) { Struct.new(:role).new(role) }
 
   describe "#update_priority?" do
@@ -30,6 +30,15 @@ RSpec.describe MaintenanceTicketPolicy do
 
     context "without a signed-in user" do
       let(:user) { nil }
+
+      it "denies priority updates" do
+        expect(policy.update_priority?).to be false
+      end
+    end
+
+    context "for a closed ticket" do
+      let(:role) { "manager" }
+      let(:ticket) { Struct.new(:status).new("closed") }
 
       it "denies priority updates" do
         expect(policy.update_priority?).to be false

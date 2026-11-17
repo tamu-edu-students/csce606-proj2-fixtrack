@@ -14,9 +14,15 @@
 
   <dl class="ticket-details__list">
     <div class="ticket-details__metadata-row ticket-details__metadata-row--secondary">
-      <div class="ticket-details__metadata-item">
-        <dt>Reported By:</dt>
-        <dd><%= ticket.reporter.name %></dd>
+      <div class="ticket-details__metadata-stack">
+        <div class="ticket-details__metadata-item">
+          <dt>Reported By:</dt>
+          <dd><%= ticket.reporter.name %></dd>
+        </div>
+        <div class="ticket-details__metadata-item">
+          <dt>Assigned Technician:</dt>
+          <dd><%= ticket.assigned_technician&.name || "Unassigned" %></dd>
+        </div>
       </div>
       <div class="ticket-details__metadata-item">
         <dt>Created:</dt>
@@ -33,15 +39,4 @@
     <h2 id="ticket-issue-title">Issue Description</h2>
     <p><%= ticket.description %></p>
   </section>
-
-  <dl class="ticket-details__last-updated">
-    <div class="ticket-details__metadata-item">
-      <dt>Last Updated</dt>
-      <dd>
-        <time datetime="<%= ticket.updated_at&.iso8601 %>" data-local-time="long">
-          <%= ticket.updated_at&.to_fs(:long) %>
-        </time>
-      </dd>
-    </div>
-  </dl>
 </section>

@@ -19,6 +19,12 @@ class EquipmentController < ApplicationController
 
   def show
     authorize @equipment
+    tickets = MaintenanceTicket.includes(:repair_records, :assigned_technician)
+                               .where(equipment_id: @equipment.id)
+                               .order(created_at: :desc, id: :desc)
+                               .to_a
+    @previous_maintenance_tickets = tickets.select { |ticket| ticket.status == "closed" }
+    @non_closed_maintenance_tickets = tickets.reject { |ticket| ticket.status == "closed" }
   end
 
   def new

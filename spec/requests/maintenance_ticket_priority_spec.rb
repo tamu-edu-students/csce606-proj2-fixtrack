@@ -74,7 +74,7 @@ RSpec.describe "Ticket priority updates", type: :request do
         expect(response).to have_http_status(:unprocessable_entity)
         html = Nokogiri::HTML(response.body)
         expect(html.at_css("[role='alert']").text).to include("Priority")
-        expect(html.at_css("#ticket-details-title").text).to eq(ticket.title)
+        expect(html.at_css("#ticket-details-title").text).to eq("##{ticket.id} / #{ticket.title}")
         expect(html.at_css(".ticket-repair-history")).to be_present
         expect(html.at_css(".ticket-status-update")).to be_present
         expect(html.at_css(".ticket-priority-update [role='alert']").text).to include("Priority")
@@ -83,6 +83,24 @@ RSpec.describe "Ticket priority updates", type: :request do
           .to eq("ticket-priority-errors")
         expect(ticket.reload.attributes).to eq(original_attributes)
       end
+    end
+
+    it "hides edit controls and rejects priority updates for closed tickets" do
+      ticket.update!(status: "closed")
+
+      get maintenance_ticket_path(ticket)
+
+      expect(response).to have_http_status(:ok)
+      html = Nokogiri::HTML(response.body)
+      expect(html.at_css(".ticket-status-update__current-status").text.strip).to eq("Closed")
+      expect(html.at_css("select[name='status']")).to be_nil
+      expect(html.at_css(".ticket-priority-update")).to be_nil
+
+      original_attributes = ticket.attributes
+      update_priority(priority: "high")
+
+      expect(response).to have_http_status(:forbidden)
+      expect(ticket.reload.attributes).to eq(original_attributes)
     end
 
     it "does not normalize status or alter repair records on validation failure" do
@@ -213,7 +231,8 @@ RSpec.describe "Ticket priority updates", type: :request do
         html = Nokogiri::HTML(response.body)
         expect(html.at_css(".ticket-priority-update")).to be_nil
         expect(html.at_css("select[name='maintenance_ticket[priority]']")).to be_nil
-        expect(html.at_css(".ticket-details").text).to include("Priority", "Medium")
+        expect(html.at_css(".ticket-details__priority")["aria-label"]).to eq("Priority: Medium")
+        expect(html.at_css(".ticket-details__priority").text).to include("Medium")
         expect(html.at_css(".ticket-status-update")).to be_present
         if role == "technician"
           expect(html.at_css("form[data-repair-add-form]")).to be_present

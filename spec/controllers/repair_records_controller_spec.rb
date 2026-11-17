@@ -119,6 +119,20 @@ RSpec.describe RepairRecordsController do
       expect(ticket.repair_records).to be_empty
     end
 
+    it "does not allow adding a repair record when the ticket is not editable" do
+      ticket.update!(status: "ready_for_verification")
+      controller = build_controller(
+        user: technician,
+        title: "Motor replacement",
+        description: "Replaced the motor"
+      )
+
+      expect { controller.create }.not_to change(RepairRecord, :count)
+      expect(controller.response).to be_redirect
+      expect(controller.flash[:alert])
+        .to eq("Repair records can only be added while the ticket is assigned or in progress.")
+    end
+
     it "does not allow non-technicians to create repair records" do
       controller = build_controller(
         user: reporter,

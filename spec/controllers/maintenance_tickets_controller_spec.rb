@@ -34,7 +34,7 @@ RSpec.describe MaintenanceTicketsController do
   end
 
   describe "#index" do
-    it "lists only assigned and in-progress tickets assigned to the signed-in technician" do
+    it "lists only assigned tickets in technician-editable statuses" do
       assigned_ticket
       in_progress_ticket
       submitted_ticket
@@ -174,23 +174,29 @@ RSpec.describe MaintenanceTicketsController do
       expect(maintenance_tickets_controller.instance_variable_get(:@ticket_action_partials)).to be_empty
     end
 
-    it "does not allow the technician to open another technician's ticket" do
+    it "allows the technician to view another technician's ticket without edit controls" do
       ticket = other_technician_ticket
       maintenance_tickets_controller.define_singleton_method(:params) do
         ActionController::Parameters.new(id: ticket.id)
       end
 
-      expect { maintenance_tickets_controller.show }.to raise_error(ActiveRecord::RecordNotFound)
+      maintenance_tickets_controller.show
+
+      expect(maintenance_tickets_controller.instance_variable_get(:@maintenance_ticket)).to eq(ticket)
+      expect(maintenance_tickets_controller.instance_variable_get(:@ticket_action_partials)).to be_empty
     end
 
     %w[submitted closed ready_for_verification].each do |status|
-      it "does not allow the technician to view an assigned #{status} ticket" do
+      it "allows the technician to view an assigned #{status} ticket without edit controls" do
         ticket = create_ticket("#{status.humanize} ticket", technician, status: status)
         maintenance_tickets_controller.define_singleton_method(:params) do
           ActionController::Parameters.new(id: ticket.id)
         end
 
-        expect { maintenance_tickets_controller.show }.to raise_error(ActiveRecord::RecordNotFound)
+        maintenance_tickets_controller.show
+
+        expect(maintenance_tickets_controller.instance_variable_get(:@maintenance_ticket)).to eq(ticket)
+        expect(maintenance_tickets_controller.instance_variable_get(:@ticket_action_partials)).to be_empty
       end
     end
   end

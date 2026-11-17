@@ -45,6 +45,94 @@ RSpec.describe EquipmentController, type: :controller do
     expect(response.body).to include("No equipment has been registered.")
   end
 
+  it "shows recent closed and non-closed tickets with limited repair titles" do
+    reporter = User.create!(
+      name: "Reporter",
+      email: "equipment-history-reporter@example.com",
+      password: "password123",
+      role: "reporter"
+    )
+    technician = User.create!(
+      name: "Technician",
+      email: "equipment-history-technician@example.com",
+      password: "password123",
+      role: "technician"
+    )
+
+    ticket_groups = [
+      [ "closed", Array.new(6, "closed") ],
+      [ "open", %w[submitted rejected assigned in_progress ready_for_verification submitted] ]
+    ]
+    ticket_groups.each do |group, statuses|
+      statuses.each_with_index do |status, index|
+        ticket = MaintenanceTicket.create!(
+          title: "#{status.humanize} ticket #{index}",
+          description: "Equipment history test.",
+          priority: "medium",
+          status: status,
+          equipment: item,
+          reporter: reporter,
+          assigned_technician: %w[assigned in_progress].include?(status) ? technician : nil,
+          created_at: Time.current + index.seconds
+        )
+        next unless group == "closed" && [ 4, 5 ].include?(index)
+
+        4.times do |repair_index|
+          ticket.repair_records.create!(
+            technician: technician,
+            title: if index == 5
+                     "Repair #{repair_index}"
+                   else
+                     "Repair #{repair_index} #{'x' * 35}"
+                   end,
+            description: "Repair detail."
+          )
+        end
+      end
+    end
+
+    get :show, params: { id: item.id }
+
+    expect(response).to have_http_status(:ok)
+    html = Nokogiri::HTML(response.body)
+    open_tickets = html.at_css("#open-maintenance-tickets")
+    closed_tickets = html.at_css("#closed-maintenance-tickets")
+
+    expect(html.css(".equipment-ticket-history h2").map(&:text))
+      .to eq([ "Open Maintenance Tickets", "Closed Maintenance Tickets" ])
+    expect(open_tickets.xpath("./li").length).to eq(6)
+    expect(open_tickets.xpath("./li[@hidden]").length).to eq(1)
+    expect(open_tickets.css(".equipment-ticket-history__status").map(&:text))
+      .to include("In Progress - Technician", "Assigned - Technician")
+    expect(closed_tickets.at_css("li:first-child a").text).to include("Closed ticket 5")
+    expect(closed_tickets.xpath("./li").length).to eq(6)
+    expect(closed_tickets.xpath("./li[@hidden]").length).to eq(1)
+    closed_ticket = MaintenanceTicket.find_by!(title: "Closed ticket 5")
+    expect(closed_tickets.at_css("li:first-child .equipment-ticket-history__status").text)
+      .to eq("Closed - #{closed_ticket.updated_at.strftime('%m/%d/%y')}")
+    short_title_repairs = closed_ticket.repair_records.order(created_at: :desc, id: :desc).to_a
+    short_title_summary = short_title_repairs.map do |repair|
+      "#{repair.title} (#{repair.created_at.strftime('%m/%d/%y')})"
+    end.join(", ")
+    expect(closed_tickets.at_css("li:first-child .equipment-ticket-history__repair-summary").text.squish)
+      .to eq("Repairs: #{short_title_summary}")
+    expect(closed_tickets.at_css("li:first-child .equipment-ticket-history__repair-overflow"))
+      .to be_nil
+    long_title_ticket = closed_tickets.at_css("li:nth-child(2)")
+    long_title_repairs = MaintenanceTicket.find_by!(title: "Closed ticket 4")
+      .repair_records.order(created_at: :desc, id: :desc).to_a
+    long_title_summary = long_title_repairs.first(2).map do |repair|
+      "#{repair.title} (#{repair.created_at.strftime('%m/%d/%y')})"
+    end.join(", ")
+    expect(long_title_ticket.at_css(".equipment-ticket-history__repair-summary").text.squish)
+      .to eq("Repairs: #{long_title_summary}")
+    expect(long_title_ticket.at_css(".equipment-ticket-history__repair-overflow").text)
+      .to include("Additional repair records not shown: 2")
+    expect(open_tickets.text).to include("No repair records.")
+    expect(open_tickets.parent.at_css("[data-equipment-ticket-list-toggle]")).to be_present
+    expect(closed_tickets.parent.at_css("[data-equipment-ticket-list-toggle]")).to be_present
+  end
+
   it "renders creation and edit forms" do
     get :new
     expect(response.body).to include("Create equipment")

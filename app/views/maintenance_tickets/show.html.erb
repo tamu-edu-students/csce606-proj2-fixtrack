@@ -82,7 +82,7 @@
 
         <% if current_user.technician? &&
               @maintenance_ticket.assigned_technician_id == current_user.id &&
-              %w[assigned in_progress].include?(@maintenance_ticket.status) %>
+              MaintenanceTicket::TECHNICIAN_EDITABLE_STATUSES.include?(@maintenance_ticket.status) %>
           <% @maintenance_ticket.repair_records.order(created_at: :asc).each do |repair_record| %>
             <% form_record = @repair_record&.id == repair_record.id ? @repair_record : repair_record %>
             <section id="repair-record-panel-<%= repair_record.id %>"

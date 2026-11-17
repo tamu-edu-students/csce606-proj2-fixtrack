@@ -24,12 +24,30 @@
                      options_for_select(status_options.map { |status| [status.humanize, status] },
                                         ticket.status),
                      prompt: "Choose a status",
-                     aria: { label: "Choose a status" } %>
+                     aria: { label: "Choose a status" },
+                     data: { status_select: true } %>
+      <div class="ticket-status-update__closure-confirmation"
+           data-close-confirmation
+           role="group"
+           aria-label="Confirm ticket closure"
+           hidden>
+        <p>Closing this ticket cannot be undone.</p>
+        <%= check_box_tag :confirm_closure,
+                          "1",
+                          false,
+                          data: { closure_confirmation_checkbox: true } %>
+        <%= label_tag :confirm_closure, "I understand and confirm closing this ticket." %>
+      </div>
       <%= submit_tag "Update status" %>
     <% end %>
-  <% elsif current_user&.role == "reporter" && ticket.reporter_id != current_user.id %>
-    <p class="ticket-status-update__current-status"><%= ticket.status.to_s.humanize %></p>
   <% else %>
-    <p>Status changes aren't available for your account.</p>
+    <p class="ticket-status-update__current-status"><%= ticket.status.to_s.humanize %></p>
   <% end %>
+
+  <p class="ticket-status-update__last-updated">
+    Last updated:
+    <time datetime="<%= ticket.updated_at&.iso8601 %>" data-local-time="short">
+      <%= ticket.updated_at&.strftime("%m/%d/%y %I:%M %p") %>
+    </time>
+  </p>
 </section>

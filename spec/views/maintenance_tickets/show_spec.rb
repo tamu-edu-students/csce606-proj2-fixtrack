@@ -34,29 +34,43 @@ RSpec.describe "maintenance_tickets/show", type: :view do
 
   describe "shared information" do
     it "renders ticket details and links to the associated equipment" do
+      assigned_technician = User.create!(
+        name: "Taylor Technician",
+        email: "shared-ticket-technician@example.com",
+        password: "password",
+        role: "technician"
+      )
+      ticket.update!(assigned_technician: assigned_technician)
+
       render partial: "maintenance_tickets/shared_information", locals: { ticket: ticket }
       html = Nokogiri::HTML.fragment(rendered)
 
       expect(html.at_css("h1").text).to eq("##{ticket.id} / Pump overheats")
       expect(html.at_css(".ticket-details").text).to include(
         "Issue Description", "The pump stops during operation.",
-        "Reported By:", "Jamie Reporter",
-        "Created:", "Last Updated"
+        "Reported By:", "Jamie Reporter", "Assigned Technician:", "Taylor Technician",
+        "Created:"
       )
       expect(html.at_css(".ticket-details").text).not_to include("Status")
+      expect(html.at_css(".ticket-details").text).not_to include("Last updated")
       expect(html.at_css(".ticket-details__header > .ticket-details__priority")["aria-label"])
         .to eq("Priority: High")
       expect(html.at_css(".ticket-details__priority").text.strip).to eq("High")
-      expect(html.at_css(".ticket-details__issue + .ticket-details__last-updated"))
-        .to be_present
       expect(html.css("time[data-local-time='long']").map { |time| time["datetime"] }).to eq(
-        [ ticket.created_at.iso8601, ticket.updated_at.iso8601 ]
+        [ ticket.created_at.iso8601 ]
       )
       expect(html.css(".ticket-details__metadata-row").map do |row|
         row.css("dt").map(&:text)
       end).to eq(
-        [ [ "Reported By:", "Created:" ] ]
+        [ [ "Reported By:", "Assigned Technician:", "Created:" ] ]
       )
+    end
+
+    it "shows unassigned when no technician is assigned" do
+      render partial: "maintenance_tickets/shared_information", locals: { ticket: ticket }
+
+      expect(Nokogiri::HTML.fragment(rendered).at_css(".ticket-details").text)
+        .to include("Assigned Technician:", "Unassigned")
     end
 
     it "renders equipment details in a separate three-column panel without a title" do
@@ -244,6 +258,24 @@ RSpec.describe "maintenance_tickets/show", type: :view do
         .to be_empty
     end
 
+    it "does not render repair editing controls for a closed ticket" do
+      ticket.update!(assigned_technician: technician, status: "closed")
+      signed_in_user = technician
+      view.define_singleton_method(:current_user) { signed_in_user }
+      assign(:maintenance_ticket, ticket)
+      assign(:ticket_action_partials, [])
+      assign(:new_repair_record, ticket.repair_records.build)
+      assign(:active_repair_panel_id, nil)
+
+      render template: "maintenance_tickets/show"
+      html = Nokogiri::HTML.fragment(rendered)
+
+      expect(html.css("form[data-repair-add-form]")).to be_empty
+      expect(html.css(".ticket-repair-history__edit, .ticket-repair-history__delete"))
+        .to be_empty
+      expect(html.at_css(".ticket-status-update__current-status").text.strip).to eq("Closed")
+    end
+
     it "renders the Add panel and one hidden Repair Details panel per record" do
       ticket.update!(assigned_technician: technician)
       signed_in_user = technician
@@ -301,10 +333,37 @@ RSpec.describe "maintenance_tickets/show", type: :view do
       panel = html.at_css(".ticket-status-update")
 
       expect(panel.at_css("h2").text).to eq("Status")
-      expect(panel.at_css("label")).to be_nil
+      expect(panel.at_css("label[for='status']")).to be_nil
       expect(panel.at_css("select[aria-label='Choose a status']")).to be_present
       expect(panel.at_css("[role='status'][data-auto-dismiss='5000']").text.strip)
         .to eq("Moved status from Assigned to In progress")
+    end
+
+    it "displays an in-page confirmation before closing a ticket" do
+      signed_in_user = reporter
+      view.define_singleton_method(:current_user) { signed_in_user }
+
+      render partial: "maintenance_tickets/status_update", locals: { ticket: ticket }
+      panel = Nokogiri::HTML.fragment(rendered).at_css(".ticket-status-update")
+      options = panel.css("select option").map { |option| option["value"] }
+      confirmation = panel.at_css("[data-close-confirmation]")
+
+      expect(options).to include("closed")
+      expect(confirmation["hidden"]).to eq("")
+      expect(confirmation.text).to include("Closing this ticket cannot be undone.")
+      expect(confirmation.at_css("input[name='confirm_closure']")).to be_present
+    end
+
+    it "keeps Submitted available to a reporter when it is the current status" do
+      ticket.update!(status: "submitted")
+      signed_in_user = reporter
+      view.define_singleton_method(:current_user) { signed_in_user }
+
+      render partial: "maintenance_tickets/status_update", locals: { ticket: ticket }
+      panel = Nokogiri::HTML.fragment(rendered).at_css(".ticket-status-update")
+
+      expect(panel.css("select option").map { |option| option["value"] })
+        .to include("submitted")
     end
 
     it "shows the current status to a reporter who did not report the ticket" do
@@ -326,6 +385,27 @@ RSpec.describe "maintenance_tickets/show", type: :view do
       expect(panel.text).not_to include("You can only update the status of tickets you reported.")
       expect(panel.at_css(".ticket-status-update__current-status").text.strip)
         .to eq("In progress")
+    end
+
+    it "shows only the current status when the signed-in user cannot change it" do
+      signed_in_user = User.create!(
+        name: "Assigned Technician",
+        email: "assigned-technician@example.com",
+        password: "password",
+        role: "technician"
+      )
+      view.define_singleton_method(:current_user) { signed_in_user }
+
+      render partial: "maintenance_tickets/status_update", locals: { ticket: ticket }
+      panel = Nokogiri::HTML.fragment(rendered).at_css(".ticket-status-update")
+
+      expect(panel.at_css("select")).to be_nil
+      expect(panel.at_css(".ticket-status-update__current-status").text.strip)
+        .to eq("In progress")
+      last_updated = panel.at_css(".ticket-status-update__last-updated time")
+      expect(last_updated["datetime"]).to eq(ticket.updated_at.iso8601)
+      expect(last_updated.text.strip).to eq(ticket.updated_at.strftime("%m/%d/%y %I:%M %p"))
+      expect(panel.text).not_to include("Status changes aren't available")
     end
 
     it "shows a permission error after a reporter attempts to update someone else's ticket" do
