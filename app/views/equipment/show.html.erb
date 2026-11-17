@@ -28,6 +28,16 @@
   </dd>
 </dl>
 
+<%= render "maintenance_ticket_history",
+           title: "Open Maintenance Tickets",
+           tickets: @non_closed_maintenance_tickets,
+           list_id: "open-maintenance-tickets" %>
+
+<%= render "maintenance_ticket_history",
+           title: "Closed Maintenance Tickets",
+           tickets: @previous_maintenance_tickets,
+           list_id: "closed-maintenance-tickets" %>
+
 <p><%= link_to "All equipment", equipment_index_path %></p>
 
 <% if EquipmentPolicy.new(current_user, @equipment).update? %>

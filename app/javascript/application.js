@@ -12,6 +12,22 @@ function syncRepairRecordsToggle(section) {
 document.addEventListener("click", (event) => {
   if (!(event.target instanceof Element)) return;
 
+  const equipmentTicketToggle = event.target.closest("[data-equipment-ticket-list-toggle]");
+  if (equipmentTicketToggle) {
+    const section = equipmentTicketToggle.closest(".equipment-ticket-history");
+    if (!section) return;
+
+    const showAll = equipmentTicketToggle.getAttribute("aria-expanded") !== "true";
+    section.querySelectorAll("[data-equipment-ticket-overflow]").forEach((ticket) => {
+      ticket.hidden = !showAll;
+    });
+    equipmentTicketToggle.setAttribute("aria-expanded", String(showAll));
+    equipmentTicketToggle.textContent = showAll
+      ? "Show fewer tickets"
+      : `Show all ${section.querySelector("h2").textContent.toLowerCase()}`;
+    return;
+  }
+
   const showAllButton = event.target.closest("[data-repair-records-show-all]");
   if (showAllButton) {
     const section = showAllButton.closest(".ticket-repair-history");
@@ -41,6 +57,21 @@ document.addEventListener("click", (event) => {
     item.open = expandAll;
   });
   syncRepairRecordsToggle(section);
+});
+
+document.addEventListener("change", (event) => {
+  if (!(event.target instanceof HTMLSelectElement) ||
+      !event.target.matches("[data-status-select]")) return;
+
+  const form = event.target.form;
+  const confirmation = form?.querySelector("[data-close-confirmation]");
+  const checkbox = confirmation?.querySelector("[data-closure-confirmation-checkbox]");
+  if (!confirmation || !(checkbox instanceof HTMLInputElement)) return;
+
+  const closingTicket = event.target.value === "closed";
+  confirmation.hidden = !closingTicket;
+  checkbox.required = closingTicket;
+  if (!closingTicket) checkbox.checked = false;
 });
 
 document.addEventListener(

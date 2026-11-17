@@ -1,5 +1,4 @@
 class MaintenanceTicketsController < ApplicationController
-  TECHNICIAN_VISIBLE_STATUSES = %w[assigned in_progress].freeze
   STATUSES_BEFORE_REPAIR = MaintenanceTicket::STATUSES_BEFORE_REPAIR
   TICKET_ACTION_PARTIALS = {
     "manager" => %w[technician_assignment].freeze,
@@ -11,7 +10,8 @@ class MaintenanceTicketsController < ApplicationController
 
   def index
     @maintenance_tickets = ticket_scope.order(created_at: :desc)
-    @empty_state_message = current_user.technician? ? "You have no tickets to work on." : "No issues have been reported."
+    @empty_state_message =
+      current_user.technician? ? "You have no tickets to work on." : "No issues have been reported."
   end
 
   def new
@@ -32,7 +32,7 @@ class MaintenanceTicketsController < ApplicationController
   end
 
   def show
-    @maintenance_ticket = show_scope.find(params[:id])
+    @maintenance_ticket = MaintenanceTicket.find(params[:id])
     normalize_status_for_repair_records(@maintenance_ticket)
     prepare_ticket_details
   end
@@ -70,6 +70,12 @@ class MaintenanceTicketsController < ApplicationController
       return
     end
 
+    if requested_status == "closed" && params[:confirm_closure] != "1"
+      redirect_to maintenance_ticket_path(ticket),
+                  alert: "Closing this ticket cannot be undone. Confirm closure to continue."
+      return
+    end
+
     previous_status = ticket.status
     if requested_status == previous_status
       redirect_to maintenance_ticket_path(ticket)
@@ -95,11 +101,17 @@ class MaintenanceTicketsController < ApplicationController
 
   def prepare_ticket_details
     @repair_records_order = params[:repair_records_order] == "desc" ? "desc" : "asc"
+    if @maintenance_ticket.status == "closed"
+      @ticket_action_partials = []
+      return
+    end
+
     @ticket_action_partials = TICKET_ACTION_PARTIALS.fetch(current_user.role, []).dup
     # Priority access includes Admins, so use the same policy as the endpoint.
     @ticket_action_partials.unshift("priority_update") if policy(@maintenance_ticket).update_priority?
     if current_user.technician? &&
-       @maintenance_ticket.assigned_technician_id != current_user.id
+       (@maintenance_ticket.assigned_technician_id != current_user.id ||
+        !MaintenanceTicket::TECHNICIAN_EDITABLE_STATUSES.include?(@maintenance_ticket.status))
       @ticket_action_partials = []
     end
   end
@@ -119,19 +131,9 @@ class MaintenanceTicketsController < ApplicationController
   def ticket_scope
     return MaintenanceTicket.all unless current_user&.technician?
 
-    technician_ticket_scope
-  end
-
-  def show_scope
-    return MaintenanceTicket.all unless current_user&.technician?
-
-    technician_ticket_scope.or(MaintenanceTicket.where(reporter: current_user))
-  end
-
-  def technician_ticket_scope
     MaintenanceTicket.where(
       assigned_technician: current_user,
-      status: TECHNICIAN_VISIBLE_STATUSES
+      status: MaintenanceTicket::TECHNICIAN_EDITABLE_STATUSES
     )
   end
 
