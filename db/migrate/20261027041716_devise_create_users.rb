@@ -16,7 +16,7 @@ class DeviseCreateUsers < ActiveRecord::Migration[8.1]
       ## User role
       t.string :role, default: "technician", null: false
       ## Company reference
-      t.references :company, null: false, foreign_key: true
+      ##t.references :company, null: false, foreign_key: true
       ## Trackable
       # t.integer  :sign_in_count, default: 0, null: false
       # t.datetime :current_sign_in_at
