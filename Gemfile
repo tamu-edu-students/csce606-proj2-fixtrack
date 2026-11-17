@@ -15,6 +15,7 @@ gem "jbuilder"
 # Use Redis adapter to run Action Cable in production
 # gem "redis", ">= 4.0.1"
 
+
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
 
@@ -36,7 +37,7 @@ gem "image_processing", "~> 1.2"
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
-
+  gem "foreman"
   # Audits gems for known security defects (use config/bundler-audit.yml to ignore issues)
   gem "bundler-audit", require: false
 
@@ -62,3 +63,7 @@ gem "database_cleaner-active_record", "~> 2.2", group: :test, require: "database
 gem "devise", "~> 5.0"
 
 gem "pundit", "~> 2.5"
+
+gem "inertia_rails", "~> 3.23"
+
+gem "vite_rails", "~> 3.11"
