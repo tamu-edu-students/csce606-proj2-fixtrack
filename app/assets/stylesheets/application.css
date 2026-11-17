@@ -216,7 +216,6 @@
 .ticket-priority-update select {
   box-sizing: border-box;
   width: 100%;
-  height: var(--ticket-control-height);
   margin-bottom: 1rem;
   padding: 0.5rem;
 }
@@ -224,6 +223,7 @@
 .ticket-repair-panel input[type="text"],
 .ticket-status-update select,
 .ticket-priority-update select {
+  height: var(--ticket-control-height);
   font-family: inherit;
   font-size: inherit;
   font-weight: normal;
