@@ -1,0 +1,32 @@
+
+<h2>Company Users</h2>
+
+<p>View and manage users associated with your company.</p>
+
+<div class="actions">
+  <%= link_to "Create New User", new_user_path %>
+</div>
+
+<% if @users.any? %>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>User Type</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% @users.each do |user| %>
+        <tr>
+          <td><%= user.name %></td>
+          <td><%= user.email %></td>
+          <td><%= user.role.capitalize %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p>No users have been created for your company yet.</p>
+<% end %>
