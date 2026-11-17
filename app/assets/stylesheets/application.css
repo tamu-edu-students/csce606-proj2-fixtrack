@@ -8,3 +8,458 @@
  *
  * Consider organizing styles into separate files for maintainability.
  */
+
+.ticket-show-layout {
+  --ticket-control-height: 2.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
+  gap: 1.5rem;
+  max-width: 80rem;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.ticket-show-content {
+  display: grid;
+  align-content: start;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.ticket-side-panels {
+  display: grid;
+  align-content: start;
+  gap: 1.5rem;
+  position: sticky;
+  top: 1rem;
+  align-self: start;
+  min-width: 0;
+}
+
+.ticket-panel {
+  padding: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.ticket-status-update > h2,
+.ticket-repair-panel h2 {
+  margin: 0 0 1rem;
+}
+
+.ticket-details__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ticket-details__header h1 {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.ticket-details__priority {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 0.35rem;
+  box-sizing: border-box;
+  height: var(--ticket-control-height);
+  padding: 0 0.75rem;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.ticket-details__priority svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.ticket-details__priority--high {
+  color: #b42318;
+  background: #fef3f2;
+}
+
+.ticket-details__priority--medium {
+  color: #92400e;
+  background: #fffaeb;
+}
+
+.ticket-details__priority--low {
+  color: #067647;
+  background: #ecfdf3;
+}
+
+.ticket-details__list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+}
+
+.ticket-details__metadata-row {
+  display: grid;
+  gap: 0.5rem 1rem;
+}
+
+.ticket-details__metadata-row--secondary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ticket-details__metadata-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.4rem;
+  min-width: 0;
+}
+
+.ticket-details__metadata-item dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.ticket-details__issue h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+}
+
+.ticket-equipment-panel__list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem 1rem;
+  margin: 0;
+}
+
+.ticket-equipment-panel__list > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.ticket-equipment-panel__list dt,
+.ticket-details__metadata-row--secondary dt {
+  font-weight: 600;
+}
+
+.ticket-equipment-panel__list dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.ticket-details__issue {
+  margin-top: 1rem;
+}
+
+.ticket-details__issue p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.ticket-details__last-updated {
+  display: grid;
+  margin: 1rem 0 0;
+  font-size: 0.875rem;
+}
+
+.ticket-details__last-updated dt {
+  font-weight: normal;
+}
+
+.ticket-details__last-updated dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.ticket-message {
+  margin: 0 0 1rem;
+  padding: 0.75rem;
+}
+
+.ticket-message--success {
+  border-left: 0.25rem solid #21834a;
+  background: #effaf2;
+  color: #185c35;
+}
+
+.ticket-message--error {
+  border-left: 0.25rem solid #b42318;
+  background: #fef3f2;
+  color: #912018;
+}
+
+.ticket-page-feedback {
+  display: none;
+}
+
+.ticket-repair-panel {
+  min-width: 0;
+}
+
+.ticket-repair-panel label,
+.ticket-priority-update label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.ticket-repair-panel textarea,
+.ticket-repair-panel input[type="text"],
+.ticket-status-update select,
+.ticket-priority-update select {
+  box-sizing: border-box;
+  width: 100%;
+  height: var(--ticket-control-height);
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+}
+
+.ticket-repair-panel input[type="text"],
+.ticket-status-update select,
+.ticket-priority-update select {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: normal;
+}
+
+.ticket-status-update select {
+  display: block;
+}
+
+.ticket-status-update__current-status {
+  margin: 0 0 1rem;
+  font-size: inherit;
+  font-weight: normal;
+}
+
+.ticket-status-update__confirmation {
+  margin: 0 0 1rem;
+  padding: 0.75rem;
+  border-left: 0.25rem solid #21834a;
+  background: #effaf2;
+  color: #185c35;
+}
+
+.ticket-repair-history {
+  margin: 0;
+}
+
+.ticket-repair-history__table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.ticket-repair-history__repair-column {
+  width: 70%;
+}
+
+.ticket-repair-history__recorded-column {
+  width: 30%;
+}
+
+.ticket-repair-history__repair-column--with-actions {
+  width: 52%;
+}
+
+.ticket-repair-history__recorded-column--with-actions {
+  width: 26%;
+}
+
+.ticket-repair-history__actions-column {
+  width: 22%;
+}
+
+.ticket-repair-history__table th,
+.ticket-repair-history__table td {
+  padding: 0.5rem 1rem 0.5rem 0;
+  border: 0;
+  text-align: left;
+  vertical-align: top;
+}
+
+.ticket-repair-history__summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #0759a5;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  overflow-wrap: anywhere;
+}
+
+.ticket-repair-history__notes p {
+  overflow-wrap: anywhere;
+}
+
+.ticket-repair-history__table tbody tr[aria-current="true"] {
+  background: #eef6ff;
+}
+
+.ticket-repair-history__editing-indicator {
+  display: inline-block;
+  margin: 0.25rem 0 0 0.5rem;
+  color: #0759a5;
+  font-size: 0.875em;
+  font-weight: 600;
+}
+
+.ticket-repair-history__summary:hover {
+  color: #003e75;
+}
+
+.ticket-repair-history__summary:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.ticket-repair-history__toggle {
+  margin-left: 0.5rem;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid #0759a5;
+  border-radius: 0.25rem;
+  background: #fff;
+  color: #0759a5;
+  cursor: pointer;
+}
+
+.ticket-repair-history__toggle:hover {
+  background: #f0f7ff;
+}
+
+.ticket-repair-history__show-all {
+  margin-top: 0.75rem;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid #0759a5;
+  border-radius: 0.25rem;
+  background: #fff;
+  color: #0759a5;
+  cursor: pointer;
+}
+
+.ticket-repair-history__show-all:hover {
+  background: #f0f7ff;
+}
+
+.ticket-repair-history__action-links,
+.ticket-repair-history__delete-confirmation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.ticket-repair-history__delete-form {
+  margin: 0;
+}
+
+.ticket-repair-history [hidden] {
+  display: none;
+}
+
+.ticket-repair-history__action {
+  font: inherit;
+  font-weight: 600;
+  color: #0759a5;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+
+.ticket-repair-history__action:hover {
+  color: #003e75;
+}
+
+.ticket-repair-history__action:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.ticket-repair-history__delete {
+  color: #a61b1b;
+}
+
+.ticket-repair-history__delete:hover {
+  color: #741414;
+}
+
+.ticket-repair-panel [hidden] {
+  display: none;
+}
+
+.ticket-repair-history__cancel {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+
+@media (max-width: 48rem) {
+  .ticket-show-layout {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ticket-page-feedback {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    order: 0;
+  }
+
+  .ticket-page-feedback .ticket-message {
+    margin-bottom: 0;
+  }
+
+  .ticket-panel .ticket-message--panel {
+    display: none;
+  }
+
+  .ticket-show-content,
+  .ticket-side-panels {
+    display: contents;
+  }
+
+  .ticket-details {
+    order: 1;
+  }
+
+  .ticket-status-update {
+    order: 2;
+  }
+
+  .ticket-repair-history {
+    order: 3;
+  }
+
+  .ticket-repair-panel {
+    order: 4;
+  }
+
+  .ticket-side-panels > :not(.ticket-status-update):not(.ticket-repair-panel) {
+    order: 5;
+  }
+
+  .ticket-show-content > :not(.ticket-details):not(.ticket-repair-history) {
+    order: 6;
+  }
+
+  .ticket-side-panels {
+    position: static;
+  }
+}
+
+@media (max-width: 36rem) {
+  .ticket-details__metadata-row--secondary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ticket-equipment-panel__list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

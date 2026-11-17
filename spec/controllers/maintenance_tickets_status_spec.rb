@@ -6,13 +6,20 @@ RSpec.describe MaintenanceTicketsController do
   let(:manager) { Struct.new(:id, :role).new(1, "manager") }
   let(:technician) { Struct.new(:id, :role).new(2, "technician") }
   let(:reporter) { Struct.new(:id, :role).new(3, "reporter") }
+  let(:repair_records) { double(exists?: false) }
   let(:ticket) do
-    ticket_class = Struct.new(:id, :assigned_technician_id, :reporter_id, :status) do
+    ticket_class = Struct.new(
+      :id,
+      :assigned_technician_id,
+      :reporter_id,
+      :status,
+      :repair_records
+    ) do
       def update(**_attributes)
         true
       end
     end
-    ticket_class.new(12, technician.id, reporter.id, "assigned")
+    ticket_class.new(12, technician.id, reporter.id, "assigned", repair_records)
   end
 
   it "allows managers to submit, reject, or assign tickets" do
@@ -34,6 +41,19 @@ RSpec.describe MaintenanceTicketsController do
   it "allows assigned technicians to set assigned, in-progress, or ready-for-verification" do
     expect(controller.status_options_for(technician, ticket))
       .to eq(%w[assigned in_progress ready_for_verification])
+  end
+
+  it "does not offer statuses below in progress when repair records exist" do
+    allow(repair_records).to receive(:exists?).and_return(true)
+
+    expect(controller.status_options_for(technician, ticket))
+      .to eq(%w[in_progress ready_for_verification])
+  end
+
+  it "does not allow managers to return tickets with repairs to a pre-progress status" do
+    allow(repair_records).to receive(:exists?).and_return(true)
+
+    expect(controller.status_options_for(manager, ticket)).to be_empty
   end
 
   it "also allows an assigned technician who created the ticket to close it" do
@@ -95,11 +115,19 @@ RSpec.describe MaintenanceTicketsController do
     end
 
     it "updates a ticket to an allowed manager status" do
+      ticket.status = "submitted"
       expect(ticket).to receive(:update).with(status: "assigned").and_return(true)
       expect(controller).to receive(:redirect_to).with(
         "/issues/12",
-        notice: "Ticket status updated."
+        flash: { status_update: "Moved status from Submitted to Assigned" }
       )
+
+      update_status_as(manager, "assigned")
+    end
+
+    it "does not update or confirm a ticket when its status is unchanged" do
+      expect(ticket).not_to receive(:update)
+      expect(controller).to receive(:redirect_to).with("/issues/12")
 
       update_status_as(manager, "assigned")
     end
@@ -119,7 +147,7 @@ RSpec.describe MaintenanceTicketsController do
       expect(ticket).to receive(:update).with(status: "closed").and_return(true)
       expect(controller).to receive(:redirect_to).with(
         "/issues/12",
-        notice: "Ticket status updated."
+        flash: { status_update: "Moved status from Assigned to Closed" }
       )
 
       update_status_as(manager, "closed")
@@ -129,7 +157,7 @@ RSpec.describe MaintenanceTicketsController do
       expect(ticket).to receive(:update).with(status: "in_progress").and_return(true)
       expect(controller).to receive(:redirect_to).with(
         "/issues/12",
-        notice: "Ticket status updated."
+        flash: { status_update: "Moved status from Assigned to In progress" }
       )
 
       update_status_as(technician, "in_progress")
@@ -152,7 +180,7 @@ RSpec.describe MaintenanceTicketsController do
       expect(ticket).to receive(:update).with(status: "closed").and_return(true)
       expect(controller).to receive(:redirect_to).with(
         "/issues/12",
-        notice: "Ticket status updated."
+        flash: { status_update: "Moved status from Assigned to Closed" }
       )
 
       update_status_as(technician, "closed")
@@ -162,7 +190,7 @@ RSpec.describe MaintenanceTicketsController do
       expect(ticket).to receive(:update).with(status: "closed").and_return(true)
       expect(controller).to receive(:redirect_to).with(
         "/issues/12",
-        notice: "Ticket status updated."
+        flash: { status_update: "Moved status from Assigned to Closed" }
       )
 
       update_status_as(reporter, "closed")
@@ -173,7 +201,7 @@ RSpec.describe MaintenanceTicketsController do
       expect(ticket).to receive(:update).with(status: "submitted").and_return(true)
       expect(controller).to receive(:redirect_to).with(
         "/issues/12",
-        notice: "Ticket status updated."
+        flash: { status_update: "Moved status from Rejected to Submitted" }
       )
 
       update_status_as(reporter, "submitted")
@@ -194,10 +222,17 @@ RSpec.describe MaintenanceTicketsController do
       expect(ticket).not_to receive(:update)
       expect(controller).to receive(:redirect_to).with(
         "/issues/12",
-        alert: "You are not allowed to set this status."
+        alert: "You can only update the status of tickets you reported."
       )
 
       update_status_as(reporter, "closed")
+    end
+
+    it "does not show a status confirmation when the status is unchanged" do
+      expect(ticket).not_to receive(:update)
+      expect(controller).to receive(:redirect_to).with("/issues/12")
+
+      update_status_as(technician, "assigned")
     end
   end
 end

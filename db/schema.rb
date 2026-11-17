@@ -1,16 +1,5 @@
-# This file is auto-generated from the current state of the database. Instead
-# of editing this file, please use the migrations feature of Active Record to
-# incrementally modify your database, and then regenerate this schema definition.
-#
-# This file is the source Rails uses to define your schema when running `bin/rails
-# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
-# be faster and is potentially less error prone than running all of your
-# migrations from scratch. Old migrations may fail to apply correctly if those
-# migrations use external dependencies or application code.
-#
-# It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_11_235000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_16_172500) do
   create_table "companies", force: :cascade do |t|
     t.string "name"
     t.datetime "created_at", null: false
@@ -46,6 +35,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_235000) do
     t.index ["status"], name: "index_maintenance_tickets_on_status"
   end
 
+  create_table "repair_records", force: :cascade do |t|
+    t.integer "maintenance_ticket_id", null: false
+    t.integer "technician_id", null: false
+    t.text "description", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "title", null: false
+    t.index ["maintenance_ticket_id"], name: "index_repair_records_on_maintenance_ticket_id"
+    t.index ["technician_id"], name: "index_repair_records_on_technician_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -65,5 +65,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_235000) do
   add_foreign_key "maintenance_tickets", "equipment"
   add_foreign_key "maintenance_tickets", "users", column: "assigned_technician_id"
   add_foreign_key "maintenance_tickets", "users", column: "reporter_id"
+  add_foreign_key "repair_records", "maintenance_tickets"
+  add_foreign_key "repair_records", "users", column: "technician_id"
   add_foreign_key "users", "companies"
 end

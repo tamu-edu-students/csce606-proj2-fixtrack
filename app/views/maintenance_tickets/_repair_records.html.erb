@@ -1,0 +1,134 @@
+<section class="ticket-panel ticket-repair-history" aria-label="Repair history">
+  <% sort_order = order == "desc" ? :desc : :asc %>
+  <% next_order = sort_order == :asc ? "desc" : "asc" %>
+  <% active_repair_panel_id = local_assigns[:active_repair_panel_id] %>
+  <% all_repair_records = ticket.repair_records.order(created_at: :asc, id: :asc).to_a %>
+  <% latest_repair_record_ids = all_repair_records.last(5).map(&:id) %>
+  <% hidden_repair_record_ids = all_repair_records.map(&:id) - latest_repair_record_ids - [active_repair_panel_id] %>
+  <% repair_records = sort_order == :asc ? all_repair_records : all_repair_records.reverse %>
+  <% can_manage_repairs = current_user&.technician? &&
+                           ticket.assigned_technician_id == current_user.id &&
+                           %w[assigned in_progress].include?(ticket.status) %>
+  <% if repair_records.any? %>
+    <table class="ticket-repair-history__table">
+      <colgroup>
+        <% if can_manage_repairs %>
+          <col class="ticket-repair-history__repair-column ticket-repair-history__repair-column--with-actions">
+          <col class="ticket-repair-history__recorded-column ticket-repair-history__recorded-column--with-actions">
+          <col class="ticket-repair-history__actions-column">
+        <% else %>
+          <col class="ticket-repair-history__repair-column">
+          <col class="ticket-repair-history__recorded-column">
+        <% end %>
+      </colgroup>
+      <thead>
+        <tr>
+          <th scope="col">
+            Repair
+            <button type="button"
+                    class="ticket-repair-history__toggle"
+                    data-repair-records-toggle
+                    aria-controls="ticket-repair-records"
+                    aria-expanded="false">
+              Expand all
+            </button>
+          </th>
+          <th scope="col" aria-sort="<%= sort_order == :asc ? 'ascending' : 'descending' %>">
+            <%= link_to "Recorded at #{sort_order == :asc ? '↑' : '↓'}",
+                        maintenance_ticket_path(ticket, repair_records_order: next_order) %>
+          </th>
+          <% if can_manage_repairs %>
+            <th scope="col">Actions</th>
+          <% end %>
+        </tr>
+      </thead>
+      <tbody id="ticket-repair-records">
+        <% repair_records.each do |repair_record| %>
+          <% editing_repair_record = active_repair_panel_id == repair_record.id %>
+          <% row_attributes = { data: { repair_record_row: repair_record.id } } %>
+          <% if hidden_repair_record_ids.include?(repair_record.id) %>
+            <% row_attributes[:hidden] = true %>
+            <% row_attributes[:data][:repair_record_overflow_row] = true %>
+          <% end %>
+          <% row_attributes[:aria] = { current: "true" } if editing_repair_record %>
+          <tr <%= tag.attributes(row_attributes) %>>
+            <td>
+              <details class="ticket-repair-history__notes">
+                <summary class="ticket-repair-history__summary"><%= repair_record.title %></summary>
+                <%= simple_format(repair_record.description) %>
+              </details>
+              <span class="ticket-repair-history__editing-indicator"
+                    data-repair-editing-indicator="true"
+                    <%= "hidden" unless editing_repair_record %>>
+                Editing
+              </span>
+            </td>
+            <td>
+              <time datetime="<%= repair_record.created_at.iso8601 %>" data-local-time="short">
+                <%= repair_record.created_at.strftime("%m/%d/%y %I:%M %p") %>
+              </time>
+            </td>
+            <% if can_manage_repairs %>
+              <td>
+                <div class="ticket-repair-history__actions">
+                  <div class="ticket-repair-history__action-links" data-repair-actions>
+                    <%= link_to "Edit",
+                                edit_maintenance_ticket_repair_record_path(ticket, repair_record),
+                                data: { repair_record_edit: true },
+                                aria: {
+                                  controls: "repair-record-panel-#{repair_record.id}",
+                                  expanded: active_repair_panel_id == repair_record.id
+                                },
+                                class: "ticket-repair-history__action ticket-repair-history__edit" %>
+                    <%= link_to "Delete",
+                                "#",
+                                data: { repair_delete_start: true },
+                                aria: {
+                                  controls: "repair-delete-confirmation-#{repair_record.id}",
+                                  expanded: false,
+                                  label: "Delete #{repair_record.title}"
+                                },
+                                class: "ticket-repair-history__action ticket-repair-history__delete" %>
+                  </div>
+                  <div id="repair-delete-confirmation-<%= repair_record.id %>"
+                       class="ticket-repair-history__delete-confirmation"
+                       data-repair-delete-confirmation
+                       role="group"
+                       aria-label="Confirm repair deletion"
+                       aria-live="polite"
+                       hidden>
+                    <span>Delete this repair record?</span>
+                    <%= form_with url: maintenance_ticket_repair_record_path(ticket, repair_record),
+                                  method: :delete,
+                                  class: "ticket-repair-history__delete-form" do %>
+                      <%= link_to "Confirm",
+                                  "#",
+                                  data: { repair_record_delete: true },
+                                  aria: { label: "Confirm deletion of #{repair_record.title}" },
+                                  class: "ticket-repair-history__action ticket-repair-history__delete" %>
+                    <% end %>
+                    <%= link_to "Cancel",
+                                "#",
+                                data: { repair_delete_cancel: true },
+                                class: "ticket-repair-history__action" %>
+                  </div>
+                </div>
+              </td>
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <% if hidden_repair_record_ids.any? %>
+      <button type="button"
+              class="ticket-repair-history__show-all"
+              data-repair-records-show-all
+              aria-controls="ticket-repair-records"
+              aria-expanded="false">
+        Show all repair records
+      </button>
+    <% end %>
+  <% else %>
+    <p>No repair records have been added.</p>
+  <% end %>
+</section>

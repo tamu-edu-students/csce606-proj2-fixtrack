@@ -10,6 +10,8 @@ Add one row after each meeting.
 | 2026-10-28 | Check-in | James, Hashim, Jorge, Pelumi, Jianqiu, Gildas | None | Aligning on screen updates and discuss open PRs and model design | Review open PRs |
 | 2026-11-02 | Check-in | James, Hashim, Jorge, Pelumi, Jianqiu, Gildas | None | Discuss mid-project deliverables, plan for next UX meeting | Review open PRs |
 | 2026-11-05 | Check-in | James, Hashim, Jorge, Pelumi, Jianqiu | Gildas | Discuss open tickets, plan for everyone to have their specific pages completed in Figma by 2026-11-09 |
+| 2026-11-09 | Check-in | James, Hashim, Jorge, Pelumi, Jianqiu, Gildas | None | Discuss completed figma pages and completed ticket |
+| 2026-11-16 | Retrospective | James, Hashim, Jorge, Pelumi, Jianqiu, Gildas | None | Discuss sprint 1 retrospective |
 
 
 ## Meeting types

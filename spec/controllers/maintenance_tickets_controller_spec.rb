@@ -61,6 +61,62 @@ RSpec.describe MaintenanceTicketsController do
       expect(maintenance_tickets_controller.instance_variable_get(:@maintenance_ticket)).to eq(ticket)
       expect(maintenance_tickets_controller.instance_variable_get(:@ticket_action_partials))
         .to eq(%w[repair_record_form])
+      expect(maintenance_tickets_controller.instance_variable_get(:@repair_records_order))
+        .to eq("asc")
+    end
+
+    it "moves an assigned ticket with repair records to in progress when shown" do
+      ticket = assigned_ticket
+      ticket.repair_records.create!(
+        technician: technician,
+        title: "Motor repair",
+        description: "Repaired the motor"
+      )
+      maintenance_tickets_controller.define_singleton_method(:params) do
+        ActionController::Parameters.new(id: ticket.id)
+      end
+
+      maintenance_tickets_controller.show
+
+      expect(ticket.reload.status).to eq("in_progress")
+    end
+
+    it "preserves ready-for-verification and closed statuses when a repaired ticket is shown" do
+      manager = User.create!(
+        name: "Manager",
+        email: "repair-status-manager@example.com",
+        password: "password",
+        role: "manager"
+      )
+      maintenance_tickets_controller.define_singleton_method(:current_user) { manager }
+
+      %w[ready_for_verification closed].each do |status|
+        ticket = create_ticket("#{status.humanize} ticket", technician, status: status)
+        ticket.repair_records.create!(
+          technician: technician,
+          title: "Motor repair",
+          description: "Repaired the motor"
+        )
+        maintenance_tickets_controller.define_singleton_method(:params) do
+          ActionController::Parameters.new(id: ticket.id)
+        end
+
+        maintenance_tickets_controller.show
+
+        expect(ticket.reload.status).to eq(status)
+      end
+    end
+
+    it "allows switching repair records to newest-first order" do
+      ticket = assigned_ticket
+      maintenance_tickets_controller.define_singleton_method(:params) do
+        ActionController::Parameters.new(id: ticket.id, repair_records_order: "desc")
+      end
+
+      maintenance_tickets_controller.show
+
+      expect(maintenance_tickets_controller.instance_variable_get(:@repair_records_order))
+        .to eq("desc")
     end
 
     it "assigns manager-only action partials to managers" do
@@ -115,6 +171,7 @@ RSpec.describe MaintenanceTicketsController do
       maintenance_tickets_controller.show
 
       expect(maintenance_tickets_controller.instance_variable_get(:@maintenance_ticket)).to eq(ticket)
+      expect(maintenance_tickets_controller.instance_variable_get(:@ticket_action_partials)).to be_empty
     end
 
     it "does not allow the technician to open another technician's ticket" do
@@ -154,6 +211,7 @@ RSpec.describe MaintenanceTicketsController do
       end
       allow(MaintenanceTicket).to receive(:new).and_return(ticket)
 
+      expect(ticket).to receive(:status=).with("submitted")
       expect(ticket).to receive(:reporter=).with(technician)
       expect(maintenance_tickets_controller).to receive(:redirect_to).with(
         ticket,

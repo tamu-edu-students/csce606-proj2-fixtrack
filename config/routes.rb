@@ -1,37 +1,52 @@
 Rails.application.routes.draw do
-
-  # Redirect to localhost from 127.0.0.1 to use same IP address with Vite server
+  # Redirect to localhost from 127.0.0.1 to use same IP address with Vite
   constraints(host: "127.0.0.1") do
-    get "(*path)", to: redirect { |params, req| "#{req.protocol}localhost:#{req.port}/#{params[:path]}" }
+    get "(*path)", to: redirect { |params, req|
+      "#{req.protocol}localhost:#{req.port}/#{params[:path]}"
+    }
   end
-  get 'inertia-example', to: 'inertia_example#index'
-  #root "maintenance_tickets#index"
+
+  # Authentication
+  devise_for :users, controllers: {
+    registrations: "users/registrations"
+  }
+
+  # Inertia example
+  get "inertia-example", to: "inertia_example#index"
+
+  # Root page
   root "home#index"
 
+  # Equipment management
   resources :equipment do
     get :confirm_destroy, on: :member
   end
 
-  devise_for :users
-  resources :maintenance_tickets, path: "issues", only: %i[index new create show]
+  # User management
+  resources :users, only: %i[new create], path: "manage_users"
+  get "/manage_users", to: "users#index", as: :manage_users
 
+  # Maintenance tickets
+  resources :maintenance_tickets,
+            path: "issues",
+            only: %i[index new create show] do
+    patch :priority, on: :member,
+                     to: "maintenance_tickets#update_priority"
+
+    resources :repair_records,
+              only: %i[create edit update destroy]
+  end
+
+  # Manager-specific functionality
   namespace :manager do
     resources :maintenance_tickets, only: :index
   end
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
-  get "up" => "rails/health#show", as: :rails_health_check
-
-  # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
-  # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
-  # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
-
-  # Defines the root path route ("/")
-  # root "posts#index"
-
+  # Ticket status updates
   patch "maintenance_tickets/:id/status",
         to: "maintenance_tickets#update_status",
         as: :update_maintenance_ticket_status
+
+  # Health check
+  get "up" => "rails/health#show", as: :rails_health_check
 end
