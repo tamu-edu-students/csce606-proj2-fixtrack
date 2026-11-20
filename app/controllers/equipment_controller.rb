@@ -14,7 +14,8 @@ class EquipmentController < ApplicationController
 
   def index
     authorize Equipment
-    @equipment = Equipment.order(:name, :id)
+    @query = params[:q].to_s.strip
+    @equipment = Equipment.search(@query).order(:name, :id)
   end
 
   def show
