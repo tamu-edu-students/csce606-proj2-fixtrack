@@ -23,6 +23,7 @@ Given("I am authenticated for equipment management as a {string}") do |role|
   require_equipment_authentication
   attributes = { email: "equipment-#{role}@example.test", password: "Equipment-test-123!", role: role }
   attributes[:name] = "Equipment #{role}" if User.column_names.include?("name")
+  attributes[:company] = Company.create!(name: "Equipment test company")
   user = User.create!(attributes)
   login_as(user, scope: :user)
 end
