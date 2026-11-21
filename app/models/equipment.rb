@@ -1,4 +1,6 @@
 class Equipment < ApplicationRecord
+  has_many :preventive_maintenance_schedules, inverse_of: :equipment, dependent: :restrict_with_error
+
   STATUSES = [ "Available", "Under Maintenance", "Out of Service" ].freeze
 
   normalizes :name, :asset_identifier, :location, with: ->(value) { value.strip }

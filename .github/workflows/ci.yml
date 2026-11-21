@@ -6,6 +6,34 @@ on:
     branches: [ main ]
 
 jobs:
+  preventive_maintenance_tests:
+    name: Preventive maintenance tests
+    runs-on: ubuntu-latest
+    env:
+      RAILS_ENV: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Prepare isolated test schema
+        run: bundle exec rails db:schema:load
+
+      - name: Check preventive maintenance models, permissions, and requests
+        run: >-
+          bundle exec rspec
+          spec/models/preventive_maintenance_schedule_spec.rb
+          spec/policies/preventive_maintenance_schedule_policy_spec.rb
+          spec/requests/preventive_maintenance_schedules_spec.rb
+
+      - name: Check preventive maintenance without JavaScript
+        run: bundle exec cucumber features/preventive_maintenance.feature --strict --publish-quiet
+
   manager_queue_tests:
     name: Manager queue isolated tests
     runs-on: ubuntu-latest

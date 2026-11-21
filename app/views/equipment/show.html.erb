@@ -29,6 +29,7 @@
 </dl>
 
 <p><%= link_to "All equipment", equipment_index_path %></p>
+<p><%= link_to "Preventive maintenance", equipment_preventive_maintenance_schedules_path(@equipment) %></p>
 
 <% if EquipmentPolicy.new(current_user, @equipment).update? %>
   <p><%= link_to "Edit equipment", edit_equipment_path(@equipment) %></p>

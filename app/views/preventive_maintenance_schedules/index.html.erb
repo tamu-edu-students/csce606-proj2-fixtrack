@@ -1,0 +1,26 @@
+<h1>Preventive maintenance for <%= @equipment.name %></h1>
+<p>Asset identifier: <%= @equipment.asset_identifier %></p>
+<%= render "equipment/messages" %>
+
+<% if PreventiveMaintenanceSchedulePolicy.new(current_user, PreventiveMaintenanceSchedule).create? %>
+  <p><%= link_to "Schedule preventive maintenance", new_equipment_preventive_maintenance_schedule_path(@equipment) %></p>
+<% end %>
+
+<% if @schedules.empty? %>
+  <p>No preventive maintenance is scheduled for this equipment.</p>
+<% else %>
+  <table>
+    <caption>Scheduled tasks for <%= @equipment.name %>, ordered by due date</caption>
+    <thead><tr><th scope="col">Task</th><th scope="col">Due date</th></tr></thead>
+    <tbody>
+      <% @schedules.each do |schedule| %>
+        <tr>
+          <td><%= schedule.task %></td>
+          <td><time datetime="<%= schedule.due_date.iso8601 %>"><%= schedule.due_date.iso8601 %></time></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
+
+<p><%= link_to "Back to equipment", equipment_path(@equipment) %></p>

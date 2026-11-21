@@ -11,6 +11,7 @@ Rails.application.routes.draw do
   # Equipment management
   resources :equipment do
     get :confirm_destroy, on: :member
+    resources :preventive_maintenance_schedules, only: %i[index new create]
   end
 
   # User management (manager functionality)
