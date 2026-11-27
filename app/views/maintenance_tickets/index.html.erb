@@ -8,6 +8,7 @@
     <thead>
       <tr>
         <th scope="col">Title</th>
+        <th scope="col">Assigned to</th>
         <th scope="col">Equipment</th>
         <th scope="col">Priority</th>
         <th scope="col">Status</th>
@@ -18,6 +19,7 @@
       <% @maintenance_tickets.each do |ticket| %>
         <tr>
           <td><%= link_to ticket.title, maintenance_ticket_path(ticket) %></td>
+          <td><%= ticket.assigned_technician&.name || "Unassigned" %></td>
           <td><%= ticket.equipment.name %></td>
           <td><%= ticket.priority.humanize %></td>
           <td><%= ticket.status.humanize %></td>
