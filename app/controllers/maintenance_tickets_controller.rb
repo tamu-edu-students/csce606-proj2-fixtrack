@@ -116,17 +116,27 @@ class MaintenanceTicketsController < ApplicationController
     ticket.update!(status: "in_progress")
   end
 
+
   def ticket_scope
-    return MaintenanceTicket.all unless current_user&.technician?
+    return MaintenanceTicket.where(reporter: current_user) if current_user.reporter?
+
+    return MaintenanceTicket.all unless current_user.technician?
 
     technician_ticket_scope
   end
 
-  def show_scope
-    return MaintenanceTicket.all unless current_user&.technician?
 
-    technician_ticket_scope.or(MaintenanceTicket.where(reporter: current_user))
+
+  def show_scope
+    return MaintenanceTicket.where(reporter: current_user) if current_user.reporter?
+
+    return MaintenanceTicket.all unless current_user.technician?
+
+    technician_ticket_scope.or(
+      MaintenanceTicket.where(reporter: current_user)
+    )
   end
+
 
   def technician_ticket_scope
     MaintenanceTicket.where(
