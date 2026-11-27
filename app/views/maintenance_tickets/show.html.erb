@@ -60,6 +60,8 @@
 
   <aside class="ticket-side-panels" aria-label="Ticket actions">
     <%= render "maintenance_tickets/status_update", ticket: @maintenance_ticket %>
+    <%# Allow reporters to verify or reopen repaired tickets without modifying existing action panels. %>
+    <%= render "maintenance_tickets/ticket_review", ticket: @maintenance_ticket %>
 
     <% if @ticket_action_partials.include?("repair_record_form") %>
       <section class="ticket-panel ticket-repair-panel" aria-label="Repair record editor">
