@@ -1,0 +1,43 @@
+<% if ticket.reviewable_by?(current_user) &&
+      %w[ready_for_verification closed].include?(ticket.status) %>
+
+  <section class="ticket-panel" aria-label="Repair verification">
+    <h2>Repair Verification</h2>
+
+    <% manager_override = ticket.manager_override_by?(current_user) %>
+
+    <% if ticket.status == "ready_for_verification" %>
+      <h3>Verify Repair</h3>
+
+      <p>Confirm that the equipment issue has been resolved.</p>
+
+      <%= form_with url: verify_maintenance_ticket_path(ticket),
+                    method: :patch do |form| %>
+
+        <% if manager_override %>
+          <p>
+            <%= form.label :reason, "Manager override reason (required)" %>
+            <%= form.text_area :reason, required: true %>
+          </p>
+        <% end %>
+
+        <%= form.submit "Verify and Close Ticket" %>
+      <% end %>
+    <% end %>
+
+    <h3>Reopen Ticket</h3>
+
+    <p>If the repair is unsuccessful, explain why more work is needed.</p>
+
+    <%= form_with url: reopen_maintenance_ticket_path(ticket),
+                  method: :patch do |form| %>
+      <p>
+        <%= form.label :reason, "Reason for reopening (required)" %>
+        <%= form.text_area :reason, required: true %>
+      </p>
+
+      <%= form.submit "Reopen Ticket" %>
+    <% end %>
+  </section>
+
+<% end %>

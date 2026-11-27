@@ -57,6 +57,14 @@ class MaintenanceTicketsController < ApplicationController
   def update_status
     ticket = MaintenanceTicket.find(params[:id])
     requested_status = params[:status]
+    # Closing a ticket requires the dedicated verification workflow
+    # so that the action is authorized and recorded in the audit history.
+    if requested_status == "closed"
+      redirect_to maintenance_ticket_path(ticket),
+              alert: "Use Verify to close a repaired ticket.",
+              status: :see_other
+      return
+    end
 
     unless status_options_for(current_user, ticket).include?(requested_status)
       alert_message =

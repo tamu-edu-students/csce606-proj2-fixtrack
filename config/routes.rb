@@ -22,13 +22,20 @@ Rails.application.routes.draw do
   resources :maintenance_tickets,
             path: "issues",
             only: %i[index new create show] do
-
     patch :priority, on: :member,
                      to: "maintenance_tickets#update_priority"
+
+    # Issue #22: Keep verification separate from the existing status workflow.
+    patch :verify, on: :member,
+                   to: "ticket_reviews#verify"
+
+    patch :reopen, on: :member,
+                   to: "ticket_reviews#reopen"
 
     resources :repair_records,
               only: %i[create edit update destroy]
   end
+
 
   # Manager-specific functionality
   namespace :manager do

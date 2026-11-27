@@ -15,6 +15,7 @@ class MaintenanceTicket < ApplicationRecord
              optional: true
 
   has_many :repair_records
+  has_many :ticket_review_events
 
   def self.status_options_for(user, ticket)
     return [] unless user
@@ -44,6 +45,19 @@ class MaintenanceTicket < ApplicationRecord
             inclusion: { in: STATUSES }
 
   validate :equipment_id_must_reference_existing_equipment
+
+  def manager_override_by?(user)
+    user&.manager? &&
+      user.id != reporter_id &&
+      user.company_id.present? &&
+      user.company_id == reporter.company_id
+  end
+
+  def reviewable_by?(user)
+    user.present? &&
+      (user.id == reporter_id || manager_override_by?(user))
+  end
+
 
   private
 
