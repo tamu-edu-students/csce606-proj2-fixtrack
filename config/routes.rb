@@ -22,7 +22,6 @@ Rails.application.routes.draw do
   resources :maintenance_tickets,
             path: "issues",
             only: %i[index new create show] do
-
     patch :priority, on: :member,
                      to: "maintenance_tickets#update_priority"
 
